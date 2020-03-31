@@ -1,1 +1,1 @@
-# gartangh
+# Othello
