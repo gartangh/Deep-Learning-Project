@@ -1,8 +1,8 @@
 from termcolor import colored
 
-from agent import Agent
-from board import Board
-from color import Color
+from game_logic.agents.agent import Agent
+from game_logic.board import Board
+from utils.color import Color
 
 
 class Game:
@@ -48,16 +48,16 @@ class Game:
 			if self.verbose:
 				print(f'Next action: {location}')
 
-			# take action and get reward
+			# take action
 			self.done = self.board.take_action(location, legal_directions, self.player.color.value)
+			# get immediate reward
+			immediate_reward: float = self.player.immediate_reward_function(self.board, self.player.color.value)
 			if self.verbose:
 				print(self.board)
 
 			# check for passes
 			if location == 'pass' and self.prev_pass:
 				self.done = True  # no player has legal actions, deadlock
-				self.black.update_final_score(self.board)
-				self.white.update_final_score(self.board)
 			elif location == 'pass':
 				self.prev_pass = True  # this player has no legal actions, pass
 			else:

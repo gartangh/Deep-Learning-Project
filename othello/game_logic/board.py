@@ -1,7 +1,7 @@
 import numpy as np
 import copy
 
-from color import Color
+from utils.color import Color
 
 
 class Board:
