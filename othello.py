@@ -2,6 +2,7 @@ from colorama import init
 from termcolor import colored
 import copy
 
+from agents.minimax_agent import MinimaxAgent
 from utils.color import Color
 from utils.help_functions import *
 from agents.random_agent import RandomAgent
@@ -47,9 +48,11 @@ def play():
 
             # get legal actions
             legal_actions = get_legal_actions(board, turn)
+
             # print(f'Legal actions: {list(legal_actions.keys())}')
             # get next action from player
             location, legal_directions = player.next_action(board, legal_actions)
+
             # print(f'Action: {location}')
 
             # take action and get reward
@@ -241,11 +244,24 @@ if __name__ == "__main__":
     num_episodes: int = 200
 
     # you can train the agents here (learn new policies while playing)
-    black: TrainableAgent = DQNAgent(Color.BLACK, board_size)
-    white: TrainableAgent = DQNAgent(Color.WHITE, board_size)
+    black: Agent = DQNAgent(Color.BLACK, board_size)
+    white: Agent = DQNAgent(Color.WHITE, board_size)
     train()
 
     # you can let them play against each other here (fixed policy)
-    # num_episodes: int = 20
-    # play()
+    num_episodes = 20
+    black.wins = 0
+    black.score = 0
+    black.num_games_won = 0
+    white.wins = 0
+    white.score = 0
+    white.num_games_won = 0
+    play()
+
+    # you can let one of them play against other agents (random, minimax)
+    white.wins = 0
+    white.score = 0
+    white.num_games_won = 0
+    black = MinimaxAgent(Color.BLACK)
+    play()
 
