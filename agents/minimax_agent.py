@@ -37,7 +37,7 @@ class MinimaxAgent(Agent):
 
         n = len(board)
         coinsBoardA = np.where(board == turn, 1, 0)
-        coinsBoardB = np.where(board == (turn - 1), -1, 0)
+        coinsBoardB = np.where(board == (1 - turn), -1, 0)
         coinsBoard = np.add(coinsBoardA, coinsBoardB)
 
         if n == 8: #in standard length
@@ -63,5 +63,7 @@ class MinimaxAgent(Agent):
             
 
     def immediate_reward(self, board, prev_board, turn):
-        reward = self.evaluateBoard(board, turn) - self.evaluateBoard(prev_board, turn)
+        board_score = self.evaluateBoard(board, turn) 
+        prev_board_score = self.evaluateBoard(prev_board, turn)
+        reward = board_score - prev_board_score
         return reward
