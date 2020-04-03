@@ -2,6 +2,7 @@ from colorama import init
 from utils.color import Color
 from utils.help_functions import *
 from agents.random_agent import RandomAgent
+from agents.minimax_agent import MinimaxAgent
 from termcolor import colored
 
 
@@ -111,7 +112,7 @@ if __name__ == "__main__":
 	# initialize global variables
 	board_size: int = 8
 	num_episodes: int = 100
-	black: Agent = RandomAgent(Color.BLACK)
+	black: Agent = MinimaxAgent(Color.BLACK)
 	white: Agent = RandomAgent(Color.WHITE)
 
 	# call main

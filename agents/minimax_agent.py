@@ -1,5 +1,6 @@
 import numpy as np 
 from agents.agent import Agent
+import random
 
 class MinimaxAgent(Agent):
     def __init__(self, color):
@@ -23,10 +24,13 @@ class MinimaxAgent(Agent):
         self._specialHeurBoard = None
     
     def __str__(self):
-		return f'{self.name}{super().__str__()}'
+	    return f'{self.name}{super().__str__()}'
     
     def next_action(self, legal_actions):
-        pass
+	    action = random.choice(list(legal_actions.keys()))
+	    legal_actions = legal_actions[action]
+
+	    return action, legal_actions
 
     def evaluateBoard(self, board, turn):
         evaluation_score = 0
@@ -59,4 +63,5 @@ class MinimaxAgent(Agent):
             
 
     def immediate_reward(self, board, prev_board, turn):
-        pass
+        reward = self.evaluateBoard(board, turn) - self.evaluateBoard(prev_board, turn)
+        return reward
