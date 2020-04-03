@@ -12,7 +12,7 @@ class RandomAgent(Agent):
 		self.immediate_reward_function = immediate_reward_function
 
 	def __str__(self):
-		return f'{self.name}{super().__str__()}'
+		return f'{self.name}{super().__str__}'
 
 	def get_next_action(self, board: Board, legal_directions: dict) -> tuple:
 		location: tuple = random.choice(list(legal_directions.keys()))

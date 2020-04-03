@@ -5,7 +5,7 @@ from termcolor import colored
 
 from game_logic.game import Game
 from game_logic.agents.random_agent import RandomAgent
-from utils.intermediate_reward_functions.difference_with_prev_board import difference_with_prev_board
+from utils.intermediate_reward_functions.difference_with_prev_board import difference_with_prev_board, heur
 
 
 def main():
