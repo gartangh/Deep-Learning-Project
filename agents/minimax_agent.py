@@ -32,7 +32,9 @@ class MinimaxAgent(Agent):
         evaluation_score = 0
 
         n = len(board)
-        coinsBoard = np.where(board == turn, 1, 0)
+        coinsBoardA = np.where(board == turn, 1, 0)
+        coinsBoardB = np.where(board == (turn - 1), -1, 0)
+        coinsBoard = np.add(coinsBoardA, coinsBoardB)
 
         if n == 8: #in standard length
             pointBoard = np.multiply(coinsBoard, self._heurBoard)
