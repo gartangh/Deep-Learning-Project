@@ -1,8 +1,9 @@
-from utils.help_functions import *
 from game_logic.board import Board
 from game_logic.agents.agent import Agent
 from utils.color import Color
+from utils.intermediate_reward_functions.difference_with_prev_board import heur
 import random
+import copy
 
 
 class MinimaxAgent(Agent):
@@ -13,13 +14,23 @@ class MinimaxAgent(Agent):
     def __str__(self):
         return f'{self.name}{super().__str__()}'
 
-    def get_next_action(self, board: Board, legal_directions: dict, maxLevel: int = 2, level: int = 0, prev_best_points: dict = None) -> tuple:
+    def minimax(self, board: Board, legal_directions: dict, maxLevel: int = 2, level: int = 0, prev_best_points: dict = None) -> tuple:
         player = self.color.value
         cur_best_points = None
         cur_best_move = None
 
         for move in legal_directions:
-            pass
+            new_board = copy.deepcopy(board)
+            new_board.take_action(move, legal_directions, player)
+            points = 0
+            if level < maxLevel:
+                points, _ = self.minimax(new_board, maxLevel, level + 1, cur_best_points)
+            else:
+                points = self.immediate_reward_function(new_board, player)
+            #TODO: need to continue here -> but this time, need to check for min/max of previous best case.
+
+    def get_next_action(self, board: Board, legal_directions: dict, maxLevel: int = 2, level: int = 0, prev_best_points: dict = None) -> tuple:
+
 
         action = random.choice(list(legal_directions.keys()))
         legal_actions = legal_directions[action]
