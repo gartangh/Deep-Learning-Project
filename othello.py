@@ -1,7 +1,7 @@
 from colorama import init
-from color import Color
-from help_functions import *
-from random_agent import RandomAgent
+from utils.color import Color
+from utils.help_functions import *
+from agents.random_agent import RandomAgent
 from termcolor import colored
 
 
