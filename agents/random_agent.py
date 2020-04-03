@@ -4,6 +4,7 @@ from agents.agent import Agent
 
 
 class RandomAgent(Agent):
+
     def __init__(self, color):
         super().__init__(color)
         self.name = 'Random'
