@@ -1,7 +1,6 @@
 import numpy as np
 import copy
-
-from agent import Agent
+from agents.agent import Agent
 
 # initialize global variables
 directions = [[+1, +0],  # down
