@@ -21,16 +21,18 @@ class MinimaxAgent(Agent):
 
         for move in legal_directions:
             new_board = copy.deepcopy(board)
-            new_board.take_action(move, legal_directions, player)
+            done = new_board.take_action(move, legal_directions[move], player)
             points = 0
             if level < maxLevel:
-                points, _ = self.minimax(new_board, maxLevel, level + 1, cur_best_points)
+                new_legal_actions: dict = new_board.get_legal_actions(player)
+                points, _ = self.minimax(new_board, new_legal_actions, maxLevel, level + 1, cur_best_points)
             else:
                 points = self.immediate_reward_function(new_board, player)
-            #TODO: need to continue here -> but this time, need to check for min/max of previous best case.
+
 
     def get_next_action(self, board: Board, legal_directions: dict, maxLevel: int = 2, level: int = 0, prev_best_points: dict = None) -> tuple:
-
+        if "pass" in legal_directions:
+            return "pass", []
 
         action = random.choice(list(legal_directions.keys()))
         legal_actions = legal_directions[action]
