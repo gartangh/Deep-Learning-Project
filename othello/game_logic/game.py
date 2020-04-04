@@ -19,11 +19,11 @@ class Game:
 
 		# state of the game
 		self.ply = 0  # no plies so far
-		self.player: Agent = black  # black begins
-		self.prev_pass: bool = False  # no player has passed before
+		self.agent: Agent = black  # black begins
+		self.prev_pass: bool = False  # opponent did not pass in previous ply
 		self.done: bool = False  # not done yet
 
-	def play(self):
+	def play(self) -> None:
 		if self.verbose:
 			print(f'Episode: {self.episode}')
 
@@ -36,41 +36,45 @@ class Game:
 			# update
 			self.ply += 1
 			if self.verbose:
-				print(f'Ply: {self.ply} ({self.player.color.name})')
+				print(f'Ply: {self.ply} ({self.agent.color.name})')
 
 			# get legal actions
-			legal_actions: dict = self.board.get_legal_actions(self.player.color.value)
+			legal_actions: dict = self.board.get_legal_actions(self.agent.color.value)
 
 			if not legal_actions:
 				# pass if no legal actions
 				if self.verbose:
 					print(f'No legal actions')
 					print(f'Next action: PASS')
-				self.prev_pass = True  # this player has no legal actions, pass
+				self.prev_pass = True  # this agent has no legal actions, pass
 				if self.prev_pass:
-					self.done = True  # no player has legal actions, deadlock
+					self.done = True  # no agent has legal actions, deadlock
 			else:
 				# get next action from legal actions and take it
-				location, legal_directions = self.player.get_next_action(self.board, legal_actions)
+				location, legal_directions = self.agent.get_next_action(self.board, legal_actions)
 				if self.verbose:
 					print(f'Legal actions: {list(legal_actions.keys())}')
 					print(f'Next action: {location}')
-				self.prev_pass = False  # this player has legal actions, no pass
-				self.done = self.board.take_action(location, legal_directions, self.player.color.value)
+				self.prev_pass = False  # this agent has legal actions, no pass
+				self.done = self.board.take_action(location, legal_directions, self.agent.color.value)
 
-			# get immediate reward
-			immediate_reward: float = self.player.immediate_reward_function(self.board, self.player.color.value)
+			# get immediate reward if agent makes use of it
+			if self.agent.immediate_reward:
+				immediate_reward: float = self.agent.immediate_reward.immediate_reward(self.board,
+				                                                                       self.agent.color.value)
+				if self.verbose:
+					print(f'Immediate reward: {immediate_reward}')
+
 			if self.verbose:
 				print(self.board)
-				print(f'Immediate reward: {immediate_reward}')
 
 			if not self.done:
 				# the game is not done yet
 				# change turns
-				self.player = self.black if self.player == self.white else self.white
+				self.agent = self.black if self.agent == self.white else self.white
 			else:
 				# the game is done
-				# update scores of both players
+				# update scores of both agents
 				self.black.update_final_score(self.board)
 				self.white.update_final_score(self.board)
 
