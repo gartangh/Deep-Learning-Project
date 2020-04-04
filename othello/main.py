@@ -49,11 +49,11 @@ def main():
 
 if __name__ == "__main__":
 	# initialize global variables
-	black: Agent = MinimaxAgent(Color.BLACK, MinimaxHeuristic(), maxDepth=3)  # the black agent
+	board_size: int = 6  # the size of the board e.g. 8x8
+	black: Agent = MinimaxAgent(Color.BLACK, MinimaxHeuristic(board_size), max_depth=3)  # the black agent
 	white: Agent = RandomAgent(Color.WHITE)  # the white agent
-	board_size: int = 8  # the size of the board e.g. 8x8
-	num_episodes: int = 100  # the number of episodes e.g. 100
-	verbose: bool = False  # wetter or not to print intermediate steps
+	num_episodes: int = 1  # the number of episodes e.g. 100
+	verbose: bool = True  # wetter or not to print intermediate steps
 
 	# call main
 	main()

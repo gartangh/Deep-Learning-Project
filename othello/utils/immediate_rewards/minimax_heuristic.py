@@ -35,7 +35,7 @@ class MinimaxHeuristic(ImmediateReward):
 		opponent_disks: np.array = np.where(board == 1 - color_value, -1, 0)
 		disks: np.array = np.add(player_disks, opponent_disks)
 		weighted_disks: np.array = np.multiply(disks, self._weights)
-		result: int = np.sum(weighted_disks)  # will be an int, but numpy says it will be np.array
+		result = np.sum(weighted_disks)  # will be an int, but numpy says it will be np.array
 
 		return result
 
