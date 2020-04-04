@@ -15,7 +15,7 @@ class MinimaxAgent(Agent):
     def __str__(self):
         return f'{self.name}{super().__str__()}'
 
-    def minimax(self, board: Board, player, legal_directions: dict, level: int = 0, prev_best_points: dict = None) -> tuple:
+    def minimax(self, board: Board, player, legal_directions: dict, level: int = 0, prev_best_points: float = None) -> tuple:
         cur_best_points = None
         cur_best_move = None
         player2 = 1 - player
@@ -38,10 +38,12 @@ class MinimaxAgent(Agent):
                 if cur_best_points == None or cur_best_points < points:
                     cur_best_points = points
                     cur_best_move = move
+                if prev_best_points != None and cur_best_points > prev_best_points: break
             elif player2 == self.color.value: #min step
                 if cur_best_points == None or cur_best_points > points:
                     cur_best_points = points
                     cur_best_move = move
+                if prev_best_points != None and cur_best_points < prev_best_points: break
 
         return cur_best_points, cur_best_move
 
