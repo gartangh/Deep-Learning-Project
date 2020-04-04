@@ -3,9 +3,9 @@ from utils.color import Color
 
 
 class Agent:
-	def __init__(self, color: Color, immediate_reward_function):
+	def __init__(self, color: Color, immediate_reward):
 		self.color: Color = color
-		self.immediate_reward_function = immediate_reward_function
+		self.immediate_reward = immediate_reward
 
 		self.num_games_won: int = 0
 

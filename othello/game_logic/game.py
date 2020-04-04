@@ -59,10 +59,13 @@ class Game:
 				self.done = self.board.take_action(location, legal_directions, self.player.color.value)
 
 			# get immediate reward
-			immediate_reward: float = self.player.immediate_reward_function(self.board, self.player.color.value)
+			if self.player.immediate_reward:
+				immediate_reward: float = self.player.immediate_reward(self.board, self.player.color.value)
+				if self.verbose:
+					print(f'Immediate reward: {immediate_reward}')
+
 			if self.verbose:
 				print(self.board)
-				print(f'Immediate reward: {immediate_reward}')
 
 			if not self.done:
 				# the game is not done yet

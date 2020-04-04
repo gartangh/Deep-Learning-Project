@@ -5,7 +5,8 @@ from termcolor import colored
 
 from game_logic.game import Game
 from game_logic.agents.random_agent import RandomAgent
-from utils.intermediate_reward_functions.difference_with_prev_board import difference_with_prev_board
+from utils.intermediate_rewards.difference_between_players import difference_between_players
+from utils.intermediate_rewards.difference_with_prev_board import difference_with_prev_board
 
 
 def main():
@@ -48,8 +49,8 @@ def main():
 
 if __name__ == "__main__":
 	# initialize global variables
-	black: Agent = RandomAgent(Color.BLACK, difference_with_prev_board)  # the black agent
-	white: Agent = RandomAgent(Color.WHITE, difference_with_prev_board)  # the white agent
+	black: Agent = RandomAgent(Color.BLACK, None)  # the black agent
+	white: Agent = RandomAgent(Color.WHITE, None)  # the white agent
 	board_size: int = 8  # the size of the board e.g. 8x8
 	num_episodes: int = 100  # the number of episodes e.g. 100
 	verbose: bool = False  # wetter or not to print intermediate steps
