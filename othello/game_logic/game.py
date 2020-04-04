@@ -40,41 +40,41 @@ class Game:
 
 			# get legal actions
 			legal_actions: dict = self.board.get_legal_actions(self.player.color.value)
-			locations: list = list(legal_actions.keys())
-			if self.verbose:
-				print(f'Legal actions: {locations}')
 
-			# get next action from player
-			if len(locations) == 1 and list(legal_actions.keys())[0] == 'pass':
-				location, legal_directions = next(iter(legal_actions.items()))
+			if not legal_actions:
+				# pass if no legal actions
+				if self.verbose:
+					print(f'No legal actions')
+					print(f'Next action: PASS')
+				self.prev_pass = True  # this player has no legal actions, pass
+				if self.prev_pass:
+					self.done = True  # no player has legal actions, deadlock
 			else:
+				# get next action from legal actions and take it
 				location, legal_directions = self.player.get_next_action(self.board, legal_actions)
-			if self.verbose:
-				print(f'Next action: {location}')
+				if self.verbose:
+					print(f'Legal actions: {list(legal_actions.keys())}')
+					print(f'Next action: {location}')
+				self.prev_pass = False  # this player has legal actions, no pass
+				self.done = self.board.take_action(location, legal_directions, self.player.color.value)
 
-			# take action
-			self.done = self.board.take_action(location, legal_directions, self.player.color.value)
 			# get immediate reward
 			immediate_reward: float = self.player.immediate_reward_function(self.board, self.player.color.value)
 			if self.verbose:
 				print(self.board)
+				print(f'Immediate reward: {immediate_reward}')
 
-			# check for passes
-			if location == 'pass' and self.prev_pass:
-				self.done = True  # no player has legal actions, deadlock
-			elif location == 'pass':
-				self.prev_pass = True  # this player has no legal actions, pass
-			else:
-				self.prev_pass = False  # regular next action
-
-			# update
 			if not self.done:
-				self.player = self.black if self.player == self.white else self.white  # change turns
+				# the game is not done yet
+				# change turns
+				self.player = self.black if self.player == self.white else self.white
 			else:
+				# the game is done
 				# update scores of both players
 				self.black.update_final_score(self.board)
 				self.white.update_final_score(self.board)
 
+				# print end result
 				if self.board.num_black_disks > self.board.num_white_disks:
 					print(colored(
 						f'{self.episode:>5}: BLACK ({self.board.num_black_disks:>3}|{self.board.num_white_disks:>3}|{self.board.num_free_spots:>3})',
