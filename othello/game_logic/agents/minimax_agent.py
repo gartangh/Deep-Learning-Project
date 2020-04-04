@@ -52,8 +52,8 @@ class MinimaxAgent(Agent):
 				if ended:
 					if won == self.color: points = 1000
 					elif won.value == 1 - self.color.value: points = -1000
-					else: points = 0
-				
+					else: points = -250
+
 			if color_value == self.color.value:  # max_step
 				if cur_best_score is None or cur_best_score < points:
 					cur_best_score = points
