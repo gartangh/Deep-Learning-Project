@@ -5,7 +5,9 @@ from termcolor import colored
 
 from game_logic.game import Game
 from game_logic.agents.random_agent import RandomAgent
+from game_logic.agents.minimax_agent import MinimaxAgent
 
+from utils.immediate_rewards.minimax_heuristic import MinimaxHeuristic
 
 def main():
 	# initialize colors
@@ -47,7 +49,7 @@ def main():
 
 if __name__ == "__main__":
 	# initialize global variables
-	black: Agent = RandomAgent(Color.BLACK)  # the black agent
+	black: Agent = MinimaxAgent(Color.BLACK, MinimaxHeuristic(), maxDepth=3)  # the black agent
 	white: Agent = RandomAgent(Color.WHITE)  # the white agent
 	board_size: int = 8  # the size of the board e.g. 8x8
 	num_episodes: int = 100  # the number of episodes e.g. 100
