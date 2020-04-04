@@ -1,11 +1,12 @@
 from game_logic.board import Board
 from utils.color import Color
+from utils.immediate_rewards.immediate_reward import ImmediateReward
 
 
 class Agent:
-	def __init__(self, color: Color, immediate_reward=None):
+	def __init__(self, color: Color, immediate_reward: ImmediateReward = None):
 		self.color: Color = color
-		self.immediate_reward = immediate_reward
+		self.immediate_reward: ImmediateReward = immediate_reward
 
 		self.num_games_won: int = 0
 

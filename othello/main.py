@@ -5,8 +5,6 @@ from termcolor import colored
 
 from game_logic.game import Game
 from game_logic.agents.random_agent import RandomAgent
-from utils.immediate_rewards.difference_between_players import difference_between_players
-from utils.immediate_rewards.difference_with_prev_board import difference_with_prev_board
 
 
 def main():
@@ -18,11 +16,11 @@ def main():
 	assert black.num_games_won == 0, f'Invalid black agent'
 	assert white.num_games_won == 0, f'Invalid white agent'
 
-	print(f'\nPlayers:\n\t{black}\n\t{white}\n')
+	print(f'\nAgents:\n\t{black}\n\t{white}\n')
 
 	for episode in range(1, num_episodes + 1):
 		# create new game
-		game = Game(episode, black, white, board_size, verbose)
+		game: Game = Game(episode, black, white, board_size, verbose)
 		# play game
 		game.play()
 
@@ -44,7 +42,7 @@ def main():
 	else:
 		raise Exception('The scores were miscalculated')
 
-	print('\n')
+	print()
 
 
 if __name__ == "__main__":

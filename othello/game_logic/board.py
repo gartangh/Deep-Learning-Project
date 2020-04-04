@@ -6,14 +6,14 @@ from utils.color import Color
 
 class Board:
 	# initialize static variables
-	directions: list = [[+1, +0],  # down
-	                    [+1, +1],  # down right
-	                    [+0, +1],  # right
-	                    [-1, +1],  # up right
-	                    [-1, +0],  # up
-	                    [-1, -1],  # up left
-	                    [+0, -1],  # left
-	                    [+1, -1]]  # down left
+	_directions: list = [[+1, +0],  # down
+	                     [+1, +1],  # down right
+	                     [+0, +1],  # right
+	                     [-1, +1],  # up right
+	                     [-1, +0],  # up
+	                     [-1, -1],  # up left
+	                     [+0, -1],  # left
+	                     [+1, -1]]  # down left
 
 	# public methods
 	# constructor
@@ -23,6 +23,7 @@ class Board:
 		assert board_size % 2 == 0, f'Invalid board size: board_size should be even, but got {board_size}'
 		self.board_size: int = board_size
 
+		# create board
 		board: np.array = -np.ones([board_size, board_size], dtype=int)
 		board[board_size // 2 - 1, board_size // 2 - 1] = 1  # white
 		board[board_size // 2, board_size // 2 - 1] = 0  # black
@@ -68,7 +69,8 @@ class Board:
 
 	def take_action(self, location: tuple, legal_directions: list, color_value: int) -> bool:
 		# check if location does point to an empty spot
-		assert self.board.item(location) == -1, f'Invalid location: location ({location}) does not point to an empty spot on the board)'
+		assert self.board.item(
+			location) == -1, f'Invalid location: location ({location}) does not point to an empty spot on the board)'
 
 		# save state before action
 		self.prev_board: np.array = copy.deepcopy(self.board)
@@ -94,18 +96,8 @@ class Board:
 		# update scores
 		self._update_score()
 
-		# calculate immediate reward, not in take_action()
-		# TODO: put this in a Game
-		# immediate_reward: float = player.get_immediate_reward(self)
-
 		# check if othello is finished
-		done = self._check_game_finished()
-
-		# TODO: put this outside of take_action()
-		# TODO: also call update for opponent
-		# if done:
-		# update final score
-		# player.update_final_score(self)
+		done: bool = self._is_game_finished()
 
 		return done
 
@@ -118,7 +110,7 @@ class Board:
 			return legal_directions
 
 		# search in all directions
-		for direction in Board.directions:
+		for direction in Board._directions:
 			found_opponent: bool = False  # check wetter there is an opponent's disk
 			i: int = location[0] + direction[0]
 			j: int = location[1] + direction[1]
@@ -140,7 +132,7 @@ class Board:
 
 		return legal_directions
 
-	def _update_score(self):
+	def _update_score(self) -> None:
 		# get scores
 		num_black_disks: int = len(np.where(self.board == Color.BLACK.value)[0])
 		num_white_disks: int = len(np.where(self.board == Color.WHITE.value)[0])
@@ -157,7 +149,7 @@ class Board:
 		self.num_white_disks: int = num_white_disks
 		self.num_free_spots: int = num_free_spots
 
-	def _check_game_finished(self):
+	def _is_game_finished(self) -> bool:
 		# return finished or not
 		if self.num_black_disks == 0 or self.num_white_disks == 0 or self.num_free_spots == 0:
 			return True
