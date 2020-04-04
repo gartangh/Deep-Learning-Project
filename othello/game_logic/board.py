@@ -117,8 +117,8 @@ class Board:
 			while 0 <= i < self.board_size and 0 <= j < self.board_size:
 				# while not out of the board, keep going
 				disk = self.board[i, j]
-				if disk == -1:
-					break  # found empty spot
+				if disk == -1 or (disk == color_value and not found_opponent):
+					break  # found empty spot or player's disk before finding opponent's disk
 
 				if disk == 1 - color_value:
 					found_opponent: bool = True  # found opponent's disk
