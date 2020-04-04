@@ -3,7 +3,7 @@ from utils.color import Color
 
 
 class Agent:
-	def __init__(self, color: Color, immediate_reward):
+	def __init__(self, color: Color, immediate_reward=None):
 		self.color: Color = color
 		self.immediate_reward = immediate_reward
 
