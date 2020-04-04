@@ -6,10 +6,9 @@ from utils.color import Color
 
 
 class RandomAgent(Agent):
-	def __init__(self, color: Color, immediate_reward_function):
-		super().__init__(color, immediate_reward_function)
+	def __init__(self, color: Color):
+		super().__init__(color)
 		self.name: str = 'Random'
-		self.immediate_reward_function = immediate_reward_function
 
 	def __str__(self):
 		return f'{self.name}{super().__str__()}'
