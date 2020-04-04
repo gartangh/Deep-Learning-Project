@@ -64,16 +64,9 @@ class Board:
 				if len(legal_directions) > 0:
 					legal_actions[(i, j)]: list = legal_directions
 
-		# pass if no legal action
-		if len(list(legal_actions.keys())) == 0:
-			legal_actions['pass']: None = None
-
 		return legal_actions
 
 	def take_action(self, location: tuple, legal_directions: list, color_value: int) -> bool:
-		if location == 'pass':
-			return False
-
 		# check if location does point to an empty spot
 		assert self.board.item(location) == -1, f'Invalid location: location ({location}) does not point to an empty spot on the board)'
 
