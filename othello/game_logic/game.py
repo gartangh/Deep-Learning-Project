@@ -40,11 +40,15 @@ class Game:
 
 			# get legal actions
 			legal_actions: dict = self.board.get_legal_actions(self.player.color.value)
+			locations: list = list(legal_actions.keys())
 			if self.verbose:
-				print(f'Legal actions: {list(legal_actions.keys())}')
+				print(f'Legal actions: {locations}')
 
 			# get next action from player
-			location, legal_directions = self.player.get_next_action(self.board, legal_actions)
+			if len(locations) == 1 and list(legal_actions.keys())[0] == 'pass':
+				location, legal_directions = next(iter(legal_actions.items()))
+			else:
+				location, legal_directions = self.player.get_next_action(self.board, legal_actions)
 			if self.verbose:
 				print(f'Next action: {location}')
 
