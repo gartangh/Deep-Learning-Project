@@ -14,6 +14,18 @@ class MinimaxAgent(Agent):
 	def __str__(self):
 		return f'{self.name}{super().__str__()}'
 
+	def _finished(self, board: Board):
+		white_legal_actions = board.get_legal_actions(Color.WHITE.value)
+		black_legal_actions = board.get_legal_actions(Color.BLACK.value)
+		ended = False
+		won = None
+		if not white_legal_actions and not black_legal_actions: # someone won
+			ended = True
+			if board.num_black_disks > board.num_white_disks: won = Color.BLACK
+			elif board.num_white_disks > board.num_black_disks: won = Color.WHITE
+			else: won = Color.EMPTY
+		return ended, won
+
 	def minimax(self, board: Board, color_value: int, legal_actions: dict, level: int = 0,
 	            prev_best_points: float = None) -> tuple:
 		cur_best_score = None
@@ -34,6 +46,14 @@ class MinimaxAgent(Agent):
 			else:
 				points = self.immediate_reward.immediate_reward(new_board, color_value)
 
+			#when points is not assigned -> due to nobody can play anymore
+			if points is None:
+				ended, won = self._finished(new_board)
+				if ended:
+					if won == self.color: points = 1000
+					elif won.value == 1 - self.color.value: points = -1000
+					else: points = 0
+				
 			if color_value == self.color.value:  # max_step
 				if cur_best_score is None or cur_best_score < points:
 					cur_best_score = points
