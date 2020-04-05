@@ -1,5 +1,7 @@
 from game_logic.agents.agent import Agent, TrainableAgent
 from game_logic.agents.dqn_agent import DQNAgent
+from game_logic.agents.agent import Agent
+from game_logic.agents.risk_regions_agent import RiskRegionsAgent
 from utils.color import Color
 from colorama import init
 from termcolor import colored
@@ -77,6 +79,6 @@ if __name__ == "__main__":
 	# let the white agent play against a RandomAgent or a MinimaxAgent
 	num_episodes = 50
 	white = MinimaxAgent(color=Color.WHITE, immediate_reward=MinimaxHeuristic(board_size))  # the black agent
-	# white = RandomAgent(color=Color.WHITE)
+	# white = RiskRegionsAgent(color=Color.WHITE)
 	black.reset_score()
 	main(train=False)
