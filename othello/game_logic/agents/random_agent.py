@@ -1,6 +1,6 @@
 import random
 
-from agents.agent import Agent
+from game_logic.agents import Agent
 
 
 class RandomAgent(Agent):

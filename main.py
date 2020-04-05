@@ -1,13 +1,11 @@
 from colorama import init
 from termcolor import colored
-import copy
 
-from agents.minimax_agent import MinimaxAgent
+from game_logic.agents import MinimaxAgent
 from utils.color import Color
 from utils.help_functions import *
-from agents.random_agent import RandomAgent
-from agents.agent import TrainableAgent
-from agents.dqn_agent import DQNAgent
+from game_logic.agents import TrainableAgent
+from game_logic.agents import DQNAgent
 
 
 def play():

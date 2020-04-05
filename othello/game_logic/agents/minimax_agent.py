@@ -1,5 +1,4 @@
-from agents.agent import Agent
-from utils.help_functions import *
+from game_logic.agents import Agent
 import random
 
 

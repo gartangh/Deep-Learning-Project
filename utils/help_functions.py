@@ -1,7 +1,7 @@
 import numpy as np
 import copy
 
-from agents.agent import Agent
+from game_logic.agents import Agent
 
 # initialize global variables
 directions = [[+1, +0],  # down

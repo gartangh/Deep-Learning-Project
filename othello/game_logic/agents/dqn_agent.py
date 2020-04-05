@@ -4,7 +4,7 @@ from keras.layers import Dense
 from keras.optimizers import Adam
 import numpy as np
 
-from agents.agent import TrainableAgent
+from game_logic.agents import TrainableAgent
 from utils.color import Color
 from utils.policies import AnnealingEpsGreedyPolicy, RandomPolicy, EpsGreedyPolicy
 from utils.help_functions import get_legal_actions
