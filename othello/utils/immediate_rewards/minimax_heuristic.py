@@ -21,21 +21,21 @@ class MinimaxHeuristic(ImmediateReward):
 		weights: np.array = MinimaxHeuristic._corner
 		half_board_size: int = board_size // 2
 		if half_board_size <= 3:
-			weights = MinimaxHeuristic._corner[:half_board_size, :half_board_size]
+			weights: np.array = MinimaxHeuristic._corner[:half_board_size, :half_board_size]
 		else:
-			weights = np.vstack([weights, MinimaxHeuristic._edge])
-			weights = np.column_stack([weights, np.append(MinimaxHeuristic._edge, 1)])
-			weights = np.pad(weights, (0, half_board_size - 4), 'edge')
+			weights: np.array = np.vstack([weights, MinimaxHeuristic._edge])
+			weights: np.array = np.column_stack([weights, np.append(MinimaxHeuristic._edge, 1)])
+			weights: np.array = np.pad(weights, (0, half_board_size - 4), 'edge')
 			weights[half_board_size - 1, half_board_size - 1] = 2
 
-		self._weights = np.pad(weights, (0, half_board_size), 'symmetric')
+		self._weights: np.array = np.pad(weights, (0, half_board_size), 'symmetric')
 
 	def _evaluate_board(self, board: np.array, color_value: int):
 		player_disks: np.array = np.where(board == color_value, 1, 0)
 		opponent_disks: np.array = np.where(board == 1 - color_value, -1, 0)
 		disks: np.array = np.add(player_disks, opponent_disks)
 		weighted_disks: np.array = np.multiply(disks, self._weights)
-		result: int = np.sum(weighted_disks)  # will be an int, but numpy says it will be np.array
+		result: int = int(np.sum(weighted_disks))  # will be an int, but numpy says it will be np.array
 
 		return result
 

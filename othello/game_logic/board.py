@@ -2,18 +2,19 @@ import numpy as np
 import copy
 
 from utils.color import Color
+from typing import Dict, List, Tuple
 
 
 class Board:
 	# initialize static variables
-	_directions: list = [[+1, +0],  # down
-	                     [+1, +1],  # down right
-	                     [+0, +1],  # right
-	                     [-1, +1],  # up right
-	                     [-1, +0],  # up
-	                     [-1, -1],  # up left
-	                     [+0, -1],  # left
-	                     [+1, -1]]  # down left
+	_directions: List[Tuple[int, int]] = [(+1, +0),  # down
+	                                      (+1, +1),  # down right
+	                                      (+0, +1),  # right
+	                                      (-1, +1),  # up right
+	                                      (-1, +0),  # up
+	                                      (-1, -1),  # up left
+	                                      (+0, -1),  # left
+	                                      (+1, -1)]  # down left
 
 	# public methods
 	# constructor
@@ -36,7 +37,7 @@ class Board:
 		self.num_free_spots: int = board_size ** 2 - 4
 
 	def __str__(self):
-		string = '\t|'
+		string: str = '\t|'
 		for j in range(self.board_size):
 			string += f'{j}\t'
 		string += '\n_\t|'
@@ -58,10 +59,10 @@ class Board:
 		return string
 
 	def get_legal_actions(self, color_value: int) -> dict:
-		legal_actions: dict = {}
+		legal_actions: Dict[Tuple[int, int], List[Tuple[int, int]]] = {}
 		for i in range(self.board_size):
 			for j in range(self.board_size):
-				legal_directions: list = self._get_legal_directions((i, j), color_value)
+				legal_directions: List[Tuple[int, int]] = self._get_legal_directions((i, j), color_value)
 				if len(legal_directions) > 0:
 					legal_actions[(i, j)]: list = legal_directions
 
@@ -85,7 +86,7 @@ class Board:
 			i: int = location[0] + direction[0]
 			j: int = location[1] + direction[1]
 			while 0 <= i < self.board_size and 0 <= j < self.board_size:
-				disk = self.board[i, j]
+				disk: int = self.board[i, j]
 				if disk == color_value or disk == Color.EMPTY.value:
 					break  # encountered empty spot or own disk
 				if disk == 1 - color_value:
@@ -103,7 +104,7 @@ class Board:
 
 	# private methods
 	def _get_legal_directions(self, location: tuple, color_value: int) -> list:
-		legal_directions: list = []
+		legal_directions: List[Tuple[int, int]] = []
 
 		# check if location points to an empty spot
 		if self.board.item(location) != -1:
@@ -116,9 +117,9 @@ class Board:
 			j: int = location[1] + direction[1]
 			while 0 <= i < self.board_size and 0 <= j < self.board_size:
 				# while not out of the board, keep going
-				disk = self.board[i, j]
-				if disk == -1:
-					break  # found empty spot
+				disk: int = self.board[i, j]
+				if disk == -1 or (disk == color_value and not found_opponent):
+					break  # found empty spot or player's disk before finding opponent's disk
 
 				if disk == 1 - color_value:
 					found_opponent: bool = True  # found opponent's disk

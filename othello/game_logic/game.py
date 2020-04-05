@@ -46,9 +46,9 @@ class Game:
 				if self.verbose:
 					print(f'No legal actions')
 					print(f'Next action: PASS')
-				self.prev_pass = True  # this agent has no legal actions, pass
 				if self.prev_pass:
 					self.done = True  # no agent has legal actions, deadlock
+				self.prev_pass = True  # this agent has no legal actions, pass
 			else:
 				# get next action from legal actions and take it
 				location, legal_directions = self.agent.get_next_action(self.board, legal_actions)

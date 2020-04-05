@@ -1,5 +1,6 @@
 from game_logic.board import Board
 from utils.color import Color
+
 from utils.immediate_rewards.immediate_reward import ImmediateReward
 
 
