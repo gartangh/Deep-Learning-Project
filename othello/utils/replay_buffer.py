@@ -1,6 +1,7 @@
 import collections
 import pickle
 import random
+import numpy as np
 
 
 class ReplayBuffer:
@@ -13,7 +14,7 @@ class ReplayBuffer:
     def n_obs(self):
         return len(self.buffer)
 
-    def add(self, s, a, r, next_s, terminal):
+    def add(self, s: np.ndarray, a: tuple, r: float, next_s: np.ndarray, terminal: bool):
         self.buffer.append((s, a, r, next_s, terminal))
 
     def sample(self, size):

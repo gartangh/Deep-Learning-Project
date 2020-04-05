@@ -4,17 +4,18 @@ from keras.layers import Dense
 from keras.optimizers import Adam
 import numpy as np
 
-from game_logic.agents import TrainableAgent
+from game_logic.agents.agent import TrainableAgent
+from game_logic.board import Board, Helper
 from utils.color import Color
+from utils.immediate_rewards.immediate_reward import ImmediateReward
 from utils.policies import AnnealingEpsGreedyPolicy, RandomPolicy, EpsGreedyPolicy
-from utils.help_functions import get_legal_actions
 
 
 class DQNAgent(TrainableAgent):
-    def __init__(self, color, board_size):
-        super().__init__(color, board_size)
+    def __init__(self, color: Color, immediate_reward: ImmediateReward = None, board_size: int = 8):
+        super().__init__(color, immediate_reward, board_size)
         self.name = 'DQN'
-        self.end_eps = 0.2  # epsilon
+        self.end_eps = 0  # epsilon
         self.discount_factor = 0.99
 
         # start with epsilon 0.99 and slowly decrease it over 75 000 steps
@@ -27,8 +28,8 @@ class DQNAgent(TrainableAgent):
         self.n_steps_start_learning = 32
 
         # old and new network to compare training loss
-        self.action_value_network = self.create_model(board_size)
-        self.target_network = self.create_model(board_size)
+        self.action_value_network = self.create_model()
+        self.target_network = self.create_model()
 
         # number of steps per mini batch
         self.mini_batch_size = 32
@@ -51,7 +52,10 @@ class DQNAgent(TrainableAgent):
         self.n_steps = 0
         self.n_episodes = 0
 
-    def create_model(self, verbose=False, lr=0.00025):
+    def __str__(self):
+        return f'{self.name}{super().__str__()}'
+
+    def create_model(self, verbose: bool=False, lr: float=0.00025) -> Sequential:
         # input: 2 nodes per board location:
         #              - 1 node that is 0 if location does not contain black, else 1
         #              - 1 node that is 0 if location does not contain white, else 1
@@ -63,10 +67,10 @@ class DQNAgent(TrainableAgent):
 
         return model
 
-    def train(self, state, action, reward, next_state, terminal, render=False):
-        assert(self.play_mode is False)
+    def train(self, board: Board, action: tuple, reward: float, next_board: Board, terminal: bool, render: bool=False):
+        assert(self.train_mode is True)
         self.episode_rewards.append(reward)
-        self.replay_buffer.add(state, action, reward, next_state, terminal)
+        self.replay_buffer.add(board.board, action, reward, next_board.board, terminal)
 
         if self._can_start_learning():
             training_error = self.q_learn_mini_batch()
@@ -80,17 +84,17 @@ class DQNAgent(TrainableAgent):
 
         return
 
-    def next_action(self, board, legal_actions):
+    def get_next_action(self, board: Board, legal_actions: dict) -> tuple:
         if self.n_steps < self.n_steps_start_learning:
-            action = self.buffer_filling_policy.get_action(board, legal_actions)
-        elif self.play_mode is False:
-            action = self.training_policy.get_action(self.board_to_nn_input(board), self.action_value_network, legal_actions)
+            action = self.buffer_filling_policy.get_action(board.board, legal_actions)
+        elif self.train_mode is True:
+            action = self.training_policy.get_action(self.board_to_nn_input(board.board), self.action_value_network, legal_actions)
         else:
-            action = self.play_policy.get_action(self.board_to_nn_input(board), self.action_value_network, legal_actions)
+            action = self.play_policy.get_action(self.board_to_nn_input(board.board), self.action_value_network, legal_actions)
 
         return action, legal_actions[action]
 
-    def q_learn_mini_batch(self):
+    def q_learn_mini_batch(self) -> list:
         self.n_training_cycles += 1
 
         # Sample a mini batch from our buffer
@@ -113,7 +117,8 @@ class DQNAgent(TrainableAgent):
         target_q_values_next_states = self.target_network.predict(next_states)
 
         for sample_nr, transition in enumerate(mini_batch):
-            state, action, reward, next_state, terminal = transition
+            # action: tuple, reward: float, next_board: np.ndarray, terminal: bool
+            __, action, reward, next_board, terminal = transition
             q_values = target_q_values_next_states[sample_nr].flatten()
 
             # associate each q value with its location on the board
@@ -122,7 +127,7 @@ class DQNAgent(TrainableAgent):
             # calculate the best q value achievable in next_state and the corresponding action
             best_next_action = 'pass'
             q_value_next_state = 0
-            legal_actions = get_legal_actions(next_state, 0 if self.color == Color.BLACK else 1)
+            legal_actions = Helper.get_legal_actions_from_board(next_board, self.board_size, 0 if self.color == Color.BLACK else 1)
 
             # get best legal action by sorting according to q value and taking the last legal entry
             q_values = sorted(q_values, key=lambda q: q[0])
@@ -149,7 +154,7 @@ class DQNAgent(TrainableAgent):
         target_weights = self.action_value_network.get_weights()
         self.target_network.set_weights(target_weights)
 
-    def _can_start_learning(self):
+    def _can_start_learning(self) -> bool:
         return self.n_steps > self.n_steps_start_learning and \
                self.n_steps % self.learning_frequency == 0 and \
                self.replay_buffer.n_obs > self.mini_batch_size
