@@ -129,7 +129,7 @@ dmypy.json
 .pyre/
 
 # Output directories
-network_weights/
+othello/network_weights/
 
 #pycharm
 .idea/
