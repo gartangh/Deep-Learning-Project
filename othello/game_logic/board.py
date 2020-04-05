@@ -4,54 +4,6 @@ import copy
 from utils.color import Color
 from typing import Dict, List, Tuple
 
-
-class Helper:
-	def __init__(self):
-		pass
-
-	@staticmethod
-	def get_legal_actions_from_board(board: np.ndarray, board_size: int, color_value: int) -> dict:
-		legal_actions: Dict[Tuple[int, int], List[Tuple[int, int]]] = {}
-		for i in range(board_size):
-			for j in range(board_size):
-				legal_directions: List[Tuple[int, int]] = Helper._get_legal_directions(board, board_size, (i, j), color_value)
-				if len(legal_directions) > 0:
-					legal_actions[(i, j)]: list = legal_directions
-
-		return legal_actions
-
-	@staticmethod
-	def _get_legal_directions(board: np.ndarray, board_size: int, location: tuple, color_value: int) -> list:
-		legal_directions: List[Tuple[int, int]] = []
-
-		# check if location points to an empty spot
-		if board.item(location) != -1:
-			return legal_directions
-
-		# search in all directions
-		for direction in Board._directions:
-			found_opponent: bool = False  # check wetter there is an opponent's disk
-			i: int = location[0] + direction[0]
-			j: int = location[1] + direction[1]
-			while 0 <= i < board_size and 0 <= j < board_size:
-				# while not out of the board, keep going
-				disk: int = board[i, j]
-				if disk == -1 or (disk == color_value and not found_opponent):
-					break  # found empty spot or player's disk before finding opponent's disk
-
-				if disk == 1 - color_value:
-					found_opponent: bool = True  # found opponent's disk
-
-				if disk == color_value and found_opponent:
-					legal_directions.append(direction)  # found own disk after finding opponent's disk
-					break
-
-				i += direction[0]
-				j += direction[1]
-
-		return legal_directions
-
-
 class Board:
 	# initialize static variables
 	_directions: List[Tuple[int, int]] = [
@@ -108,7 +60,7 @@ class Board:
 		return string
 
 	def get_legal_actions(self, color_value: int) -> dict:
-		return Helper.get_legal_actions_from_board(self.board, self.board_size, color_value)
+		return self._get_legal_actions(self.board, self.board_size, color_value)
 
 	def take_action(self, location: tuple, legal_directions: list, color_value: int) -> bool:
 		# check if location does point to an empty spot
@@ -167,3 +119,46 @@ class Board:
 			return True
 		else:
 			return False
+
+	@staticmethod
+	def _get_legal_actions(board: np.array, board_size: int, color_value: int) -> dict:
+		legal_actions: Dict[Tuple[int, int], List[Tuple[int, int]]] = {}
+		for i in range(board_size):
+			for j in range(board_size):
+				legal_directions: List[Tuple[int, int]] = Board._get_legal_directions(board, board_size, (i, j), color_value)
+				if len(legal_directions) > 0:
+					legal_actions[(i, j)]: list = legal_directions
+
+		return legal_actions
+
+	@staticmethod
+	def _get_legal_directions(board: np.array, board_size: int, location: tuple, color_value: int) -> list:
+		legal_directions: List[Tuple[int, int]] = []
+
+		# check if location points to an empty spot
+		if board.item(location) != -1:
+			return legal_directions
+
+		# search in all directions
+		for direction in Board._directions:
+			found_opponent: bool = False  # check wetter there is an opponent's disk
+			i: int = location[0] + direction[0]
+			j: int = location[1] + direction[1]
+			while 0 <= i < board_size and 0 <= j < board_size:
+				# while not out of the board, keep going
+				disk: int = board[i, j]
+				if disk == -1 or (disk == color_value and not found_opponent):
+					break  # found empty spot or player's disk before finding opponent's disk
+
+				if disk == 1 - color_value:
+					found_opponent: bool = True  # found opponent's disk
+
+				if disk == color_value and found_opponent:
+					legal_directions.append(direction)  # found own disk after finding opponent's disk
+					break
+
+				i += direction[0]
+				j += direction[1]
+
+		return legal_directions
+
