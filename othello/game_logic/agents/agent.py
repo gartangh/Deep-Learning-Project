@@ -1,6 +1,8 @@
+import numpy as np
+
 from game_logic.board import Board
 from utils.color import Color
-
+from utils.replay_buffer import ReplayBuffer
 from utils.immediate_rewards.immediate_reward import ImmediateReward
 
 
@@ -8,11 +10,10 @@ class Agent:
 	def __init__(self, color: Color, immediate_reward: ImmediateReward = None):
 		self.color: Color = color
 		self.immediate_reward: ImmediateReward = immediate_reward
-
 		self.num_games_won: int = 0
 
 	def __str__(self):
-		return f'Agent: {self.color.name}'
+		return 'Agent'
 
 	def get_next_action(self, board: Board, legal_actions: dict) -> tuple:
 		raise NotImplementedError

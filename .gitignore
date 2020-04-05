@@ -128,5 +128,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Output directories
+othello/network_weights/
+
 #pycharm
 .idea/
+
