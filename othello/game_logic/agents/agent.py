@@ -1,8 +1,5 @@
-import numpy as np
-
 from game_logic.board import Board
 from utils.color import Color
-from utils.replay_buffer import ReplayBuffer
 from utils.immediate_rewards.immediate_reward import ImmediateReward
 
 

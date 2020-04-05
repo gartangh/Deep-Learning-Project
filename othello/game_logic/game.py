@@ -3,6 +3,7 @@ import copy
 from termcolor import colored
 
 from game_logic.agents.agent import Agent
+from game_logic.agents.trainable_agent import TrainableAgent
 from game_logic.board import Board
 from utils.color import Color
 
@@ -25,7 +26,7 @@ class Game:
 		self.prev_pass: bool = False  # opponent did not pass in previous ply
 		self.done: bool = False  # not done yet
 
-	def play(self, train=False) -> None:
+	def play(self) -> None:
 		if self.verbose:
 			print(f'Episode: {self.episode}')
 
@@ -59,7 +60,8 @@ class Game:
 					print(f'Next action: {location}')
 				self.prev_pass = False  # this agent has legal actions, no pass
 
-				prev_board = copy.deepcopy(self.board) if train else None
+				prev_board = copy.deepcopy(self.board) if isinstance(self.agent,
+				                                                     TrainableAgent) and self.agent.train_mode else None
 				self.done = self.board.take_action(location, legal_directions, self.agent.color.value)
 
 				# get immediate reward if agent makes use of it
@@ -68,7 +70,7 @@ class Game:
 					                                                                       self.agent.color.value)
 					if self.verbose:
 						print(f'Immediate reward: {immediate_reward}')
-					if train:
+					if isinstance(self.agent, TrainableAgent) and self.agent.train_mode:
 						# if the agent is ready, let it learn from the replay buffer
 						self.agent.train(prev_board, location, immediate_reward, self.board, self.done, render=False)
 

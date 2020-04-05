@@ -4,6 +4,7 @@ import copy
 from utils.color import Color
 from typing import Dict, List, Tuple
 
+
 class Board:
 	# initialize static variables
 	_directions: List[Tuple[int, int]] = [
@@ -125,7 +126,8 @@ class Board:
 		legal_actions: Dict[Tuple[int, int], List[Tuple[int, int]]] = {}
 		for i in range(board_size):
 			for j in range(board_size):
-				legal_directions: List[Tuple[int, int]] = Board._get_legal_directions(board, board_size, (i, j), color_value)
+				legal_directions: List[Tuple[int, int]] = Board._get_legal_directions(board, board_size, (i, j),
+				                                                                      color_value)
 				if len(legal_directions) > 0:
 					legal_actions[(i, j)]: list = legal_directions
 
@@ -161,4 +163,3 @@ class Board:
 				j += direction[1]
 
 		return legal_directions
-
