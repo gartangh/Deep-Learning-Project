@@ -6,6 +6,7 @@ from termcolor import colored
 
 from game_logic.game import Game
 from game_logic.agents.minimax_agent import MinimaxAgent
+from game_logic.agents.random_agent import RandomAgent
 from utils.immediate_rewards.minimax_heuristic import MinimaxHeuristic
 
 
@@ -60,16 +61,30 @@ if __name__ == "__main__":
 	verbose: bool = False  # whether or not to print intermediate steps
 
 	# train 2 agents through deep Q learning
-	num_episodes: int = 100  # the number of episodes e.g. 100
+	num_episodes: int = 1000  # the number of episodes e.g. 100
 	black: DQNAgent = DQNAgent(Color.BLACK, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
-	black.set_train_mode(True)
+	#black.set_train_mode(True)
 	white: DQNAgent = DQNAgent(Color.WHITE, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
-	white.set_train_mode(True)
+	white.action_value_network = black.action_value_network
+	white.target_network = white.target_network
+	#white.set_train_mode(True)
 	main()
 
-	# let the white agent play against a RandomAgent or a MinimaxAgent
-	num_episodes: int = 50  # the number of episodes e.g. 100
-	black.num_games_won = 0  # reset black agent
-	black.set_train_mode(False)
-	white: MinimaxAgent = MinimaxAgent(color=Color.WHITE, immediate_reward=MinimaxHeuristic(board_size))
-	main()
+	#save agents
+	# dq_black = black
+	# dq_white = white
+	#
+	# # let the white agent play against a RandomAgent or a MinimaxAgent
+	# num_episodes: int = 50  # the number of episodes e.g. 100
+	# black.num_games_won = 0  # reset black agent
+	# black.set_train_mode(False)
+	# white: MinimaxAgent = RandomAgent(color=Color.WHITE) #MinimaxAgent(color=Color.WHITE, immediate_reward=MinimaxHeuristic(board_size))
+	# main()
+	#
+	# white = dq_white
+	# # let the white agent play against a RandomAgent or a MinimaxAgent
+	# num_episodes: int = 50  # the number of episodes e.g. 100
+	# white.num_games_won = 0  # reset black agent
+	# white.set_train_mode(False)
+	# black: MinimaxAgent = RandomAgent(color=Color.BLACK) #MinimaxAgent(color=Color.WHITE, immediate_reward=MinimaxHeuristic(board_size))
+	# main()
