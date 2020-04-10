@@ -60,12 +60,15 @@ if __name__ == "__main__":
 	verbose: bool = False  # whether or not to print intermediate steps
 
 	# train 2 agents through deep Q learning
-	num_episodes: int = 100  # the number of episodes e.g. 100
+	num_episodes: int = 1000  # the number of episodes e.g. 100
 	black: DQNAgent = DQNAgent(Color.BLACK, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
 	black.set_train_mode(True)
 	white: DQNAgent = DQNAgent(Color.WHITE, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
 	white.set_train_mode(True)
 	main()
+
+	black.final_save()
+	white.final_save()
 
 	# let the white agent play against a RandomAgent or a MinimaxAgent
 	num_episodes: int = 50  # the number of episodes e.g. 100
