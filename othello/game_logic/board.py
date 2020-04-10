@@ -1,5 +1,4 @@
 import numpy as np
-import copy
 
 from utils.color import Color
 from typing import Dict, List, Tuple
@@ -33,6 +32,7 @@ class Board:
 		assert 4 <= board_size <= 12, f'Invalid board size: board_size should be between 4 and 12, but got {board_size}'
 		assert board_size % 2 == 0, f'Invalid board size: board_size should be even, but got {board_size}'
 		self.board_size: int = board_size
+		self.change_board_after_n_plays = change_board_after_n_plays
 
 		# create board
 		board: np.array = -np.ones([board_size, board_size], dtype=int)
@@ -41,7 +41,7 @@ class Board:
 		board[board_size // 2 - 1, board_size // 2] = 0  # black
 		board[board_size // 2, board_size // 2] = 1  # white
 		self.board: np.array = board
-		self.prev_board: np.array = copy.deepcopy(board)
+		self.prev_board: np.array = np.copy(board)
 		self.num_black_disks: int = 2
 		self.num_white_disks: int = 2
 		self.num_free_spots: int = board_size ** 2 - 4
@@ -68,7 +68,7 @@ class Board:
 			action_key4 = keys4[chosen_play4]
 			self.take_action(action_key4, actions4[action_key4], Color.WHITE.value)
 
-			if board_usage is not None and board_usage < change_board_after_n_plays: board_usage += 1
+			if board_usage is not None and board_usage < self.change_board_after_n_plays: board_usage += 1
 			else:
 				if chosen_play4 + 1 < len(keys4): chosen_play4 += 1
 				elif chosen_play3 + 1 < len(keys3): chosen_play3 += 1; chosen_play4 = 0
@@ -100,6 +100,18 @@ class Board:
 			string += '\n'
 		return string
 
+	def get_deepcopy(self):
+		new_board = Board(self.board_size, False, self.change_board_after_n_plays)
+		new_board.num_black_disks = self.num_black_disks
+		new_board.num_white_disks = self.num_white_disks
+		new_board.num_free_spots = self.num_free_spots
+
+		new_board.board = np.copy(self.board)
+		new_board.prev_board = np.copy(self.prev_board)
+
+		return new_board
+
+
 	def get_legal_actions(self, color_value: int) -> dict:
 		return self._get_legal_actions(self.board, self.board_size, color_value)
 
@@ -109,7 +121,7 @@ class Board:
 			location) == -1, f'Invalid location: location ({location}) does not point to an empty spot on the board)'
 
 		# save state before action
-		self.prev_board: np.array = copy.deepcopy(self.board)
+		self.prev_board: np.array = np.copy(self.board)
 
 		# put down own disk in the provided location
 		i: int = location[0]
