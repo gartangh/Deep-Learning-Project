@@ -63,11 +63,11 @@ if __name__ == "__main__":
 	# train 2 agents through deep Q learning
 	num_episodes: int = 1000  # the number of episodes e.g. 100
 	black: DQNAgent = DQNAgent(Color.BLACK, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
-	#black.set_train_mode(True)
+	black.set_train_mode(True)
 	white: DQNAgent = DQNAgent(Color.WHITE, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
 	white.action_value_network = black.action_value_network
 	white.target_network = white.target_network
-	#white.set_train_mode(True)
+	white.set_train_mode(True)
 	main()
 
 	#save agents
