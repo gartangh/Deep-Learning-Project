@@ -1,5 +1,3 @@
-import copy
-
 from typing import List, Tuple, Dict
 
 from game_logic.agents.agent import Agent
@@ -43,7 +41,7 @@ class MinimaxAgent(Agent):
 		opponent_color_value: int = 1 - color_value
 
 		for location in legal_actions:
-			new_board: Board = copy.deepcopy(board)
+			new_board: Board = board.get_deepcopy()
 			new_board.take_action(location, legal_actions[location], color_value)
 			if level < self.max_depth:
 				new_legal_actions: Dict[Tuple[int, int], List[Tuple[int, int]]] = new_board.get_legal_actions(
