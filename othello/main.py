@@ -29,7 +29,7 @@ def main():
 			white.training_errors = []
 
 		# create new game
-		game: Game = Game(episode, black, white, board_size, verbose)
+		game: Game = Game(episode, black, white, board_size, verbose, tournament_mode)
 		# play game
 		game.play()
 
@@ -58,6 +58,7 @@ if __name__ == "__main__":
 	# initialize global variables
 	board_size: int = 8  # the size of the board e.g. 8x8
 	verbose: bool = False  # whether or not to print intermediate steps
+	tournament_mode = False #change every game of starting position or -> False every 4 games
 
 	# train 2 agents through deep Q learning
 	num_episodes: int = 1000  # the number of episodes e.g. 100
@@ -72,6 +73,7 @@ if __name__ == "__main__":
 
 	# let the white agent play against a RandomAgent or a MinimaxAgent
 	num_episodes: int = 50  # the number of episodes e.g. 100
+	tournament_mode = True
 	black.num_games_won = 0  # reset black agent
 	black.set_train_mode(False)
 	white: MinimaxAgent = MinimaxAgent(color=Color.WHITE, immediate_reward=MinimaxHeuristic(board_size))
