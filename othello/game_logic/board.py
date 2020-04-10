@@ -33,6 +33,7 @@ class Board:
 		assert board_size % 2 == 0, f'Invalid board size: board_size should be even, but got {board_size}'
 		self.board_size: int = board_size
 		self.change_board_after_n_plays = change_board_after_n_plays
+		self.random_start = random_start
 
 		# create board
 		board: np.array = -np.ones([board_size, board_size], dtype=int)
@@ -47,7 +48,7 @@ class Board:
 		self.num_free_spots: int = board_size ** 2 - 4
 
 		#adding random start at 4 steps in future (W - B - W - B)
-		if random_start:
+		if self.random_start:
 			actions1 = self._get_legal_actions(self.board, self.board_size, Color.BLACK.value)
 			keys1 = list(actions1.keys())
 			action_key1 = keys1[chosen_play1]
@@ -102,6 +103,7 @@ class Board:
 
 	def get_deepcopy(self):
 		new_board = Board(self.board_size, False, self.change_board_after_n_plays)
+		new_board.random_start = self.random_start
 		new_board.num_black_disks = self.num_black_disks
 		new_board.num_white_disks = self.num_white_disks
 		new_board.num_free_spots = self.num_free_spots
