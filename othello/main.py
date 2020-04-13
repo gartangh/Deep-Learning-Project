@@ -99,7 +99,7 @@ if __name__ == "__main__":
 	tournament_mode = False #change every game of starting position or -> False every 4 games
 
 	# train 2 agents through deep Q learning
-	num_episodes: int = 1000  # the number of episodes e.g. 100
+	num_episodes: int = 50  # the number of episodes e.g. 100
 	black: DQNAgent = JaimeAgent(Color.BLACK, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
 	black.set_train_mode(True)
 	white: DQNAgent = JaimeAgent(Color.WHITE, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
