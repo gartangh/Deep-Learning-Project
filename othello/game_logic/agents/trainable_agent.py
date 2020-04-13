@@ -25,8 +25,7 @@ class TrainableAgent(Agent):
 	def set_train_mode(self, mode: bool):
 		self.train_mode = mode
 
-	def train(self, board: Board, action: tuple, reward: float, next_board: Board, terminal: bool,
-	          render: bool = False):
+	def train(self, board: Board, action: tuple, reward: float, next_board: Board, terminal: bool, render: bool = False):
 		raise NotImplementedError
 
 	def get_next_action(self, board: Board, legal_actions: dict) -> tuple:

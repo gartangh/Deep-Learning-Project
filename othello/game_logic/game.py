@@ -60,14 +60,12 @@ class Game:
 					print(f'Next action: {location}')
 				self.prev_pass = False  # this agent has legal actions, no pass
 
-				prev_board = copy.deepcopy(self.board) if isinstance(self.agent,
-				                                                     TrainableAgent) and self.agent.train_mode else None
+				prev_board = copy.deepcopy(self.board) if isinstance(self.agent, TrainableAgent) and self.agent.train_mode else None
 				self.done = self.board.take_action(location, legal_directions, self.agent.color.value)
 
 				# get immediate reward if agent makes use of it
 				if self.agent.immediate_reward:
-					immediate_reward: float = self.agent.immediate_reward.immediate_reward(self.board,
-					                                                                       self.agent.color.value)
+					immediate_reward: float = self.agent.immediate_reward.immediate_reward(self.board, self.agent.color.value)
 					if self.verbose:
 						print(f'Immediate reward: {immediate_reward}')
 					if isinstance(self.agent, TrainableAgent) and self.agent.train_mode:
@@ -92,10 +90,25 @@ class Game:
 					print(colored(
 						f'{self.episode:>5}: BLACK ({self.board.num_black_disks:>3}|{self.board.num_white_disks:>3}|{self.board.num_free_spots:>3})',
 						'red'))
+					# train agents on the final reward
+					if isinstance(self.black, TrainableAgent):
+						prev_board, location, __, next_board, terminal = self.black.replay_buffer.pop()
+						self.black.train(prev_board, location, self.black.immediate_reward.final_reward(won=True), next_board, True, render=False)
+					if isinstance(self.white, TrainableAgent):
+						prev_board, location, __, next_board, terminal = self.white.replay_buffer.pop()
+						self.white.train(prev_board, location, self.white.immediate_reward.final_reward(won=False), next_board, True, render=False)
+
 				elif self.board.num_black_disks < self.board.num_white_disks:
 					print(colored(
 						f'{self.episode:>5}: WHITE ({self.board.num_black_disks:>3}|{self.board.num_white_disks:>3}|{self.board.num_free_spots:>3})',
 						'green'))
+					# train agents on the final reward
+					if isinstance(self.black, TrainableAgent):
+						prev_board, location, __, next_board, terminal = self.black.replay_buffer.pop()
+						self.black.train(prev_board, location, self.black.immediate_reward.final_reward(won=False), next_board, True, render=False)
+					if isinstance(self.white, TrainableAgent):
+						prev_board, location, __, next_board, terminal = self.white.replay_buffer.pop()
+						self.white.train(prev_board, location, self.white.immediate_reward.final_reward(won=True), next_board, True, render=False)
 				else:
 					print(colored(
 						f'{self.episode:>5}: DRAW  ({self.board.num_black_disks:>3}|{self.board.num_white_disks:>3}|{self.board.num_free_spots:>3})',

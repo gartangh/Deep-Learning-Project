@@ -83,7 +83,7 @@ if __name__ == "__main__":
 	num_episodes: int = 50  # the number of episodes e.g. 100
 	black.num_games_won = 0  # reset black agent
 	black.set_train_mode(False)
-	white: MinimaxAgent = RandomAgent(color=Color.WHITE) #MinimaxAgent(color=Color.WHITE, immediate_reward=MinimaxHeuristic(board_size))
+	white: RandomAgent = RandomAgent(color=Color.WHITE) #MinimaxAgent(color=Color.WHITE, immediate_reward=MinimaxHeuristic(board_size))
 	main()
 
 	white = dq_white
@@ -91,6 +91,6 @@ if __name__ == "__main__":
 	num_episodes: int = 50  # the number of episodes e.g. 100
 	white.num_games_won = 0  # reset black agent
 	white.set_train_mode(False)
-	black: MinimaxAgent = RandomAgent(color=Color.BLACK) #MinimaxAgent(color=Color.WHITE, immediate_reward=MinimaxHeuristic(board_size))
+	black: RandomAgent = RandomAgent(color=Color.BLACK) #MinimaxAgent(color=Color.WHITE, immediate_reward=MinimaxHeuristic(board_size))
 	main()
 
