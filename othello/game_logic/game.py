@@ -1,6 +1,5 @@
-import copy
-
 from termcolor import colored
+import numpy as np
 
 from game_logic.agents.agent import Agent
 from game_logic.agents.trainable_agent import TrainableAgent
@@ -60,7 +59,7 @@ class Game:
 					print(f'Next action: {location}')
 				self.prev_pass = False  # this agent has legal actions, no pass
 
-				prev_board = copy.deepcopy(self.board.board) if isinstance(self.agent, TrainableAgent) and self.agent.train_mode else None
+				prev_board = np.copy(self.board.board) if isinstance(self.agent, TrainableAgent) and self.agent.train_mode else None
 				self.done = self.board.take_action(location, legal_directions, self.agent.color.value)
 
 				# get immediate reward if agent makes use of it

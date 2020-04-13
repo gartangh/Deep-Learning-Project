@@ -8,6 +8,7 @@ from termcolor import colored
 from game_logic.game import Game
 from game_logic.agents.minimax_agent import MinimaxAgent
 from game_logic.agents.random_agent import RandomAgent
+from game_logic.agents.risk_regions_agent import RiskRegionsAgent
 from utils.immediate_rewards.minimax_heuristic import MinimaxHeuristic
 
 
@@ -55,15 +56,21 @@ def main():
 
 	print()
 
-def hardcore_training(total_iterations: int = 100_000, interval_log: int = 1000):
+def log(logline: str, path: str = "log.txt"):
+	file = open(path, "a")
+	file.write(logline + "\n")
+	file.close()
+
+def hardcore_training(total_iterations: int = 100_000, interval_log: int = 5000):
+	global num_episodes, black, white, board_size, verbose, tournament_mode
 	# initialize global variables
-	board_size: int = 8  # the size of the board e.g. 8x8
-	verbose: bool = False  # whether or not to print intermediate steps
+	board_size = 8  # the size of the board e.g. 8x8
+	verbose = False  # whether or not to print intermediate steps
 	tournament_mode = False #change every game of starting position or -> False every 4 games
 
-	black: JaimeAgent = JaimeAgent(Color.BLACK, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
+	black = JaimeAgent(Color.BLACK, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
 	black.set_train_mode(True)
-	white: DQNAgent = JaimeAgent(Color.WHITE, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
+	white = JaimeAgent(Color.WHITE, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
 	white.action_value_network = black.action_value_network
 	white.target_network = white.target_network
 	white.set_train_mode(True)
@@ -75,8 +82,14 @@ def hardcore_training(total_iterations: int = 100_000, interval_log: int = 1000)
 	for i in range(total_runs):
 		black = black_dqn
 		white = white_dqn
+
+		black.set_train_mode(True)
+		white.set_train_mode(True)
+		num_episodes = interval_log
+		black = black_dqn
+		white = white_dqn
 		tournament_mode = False
-		main()
+		main() #train
 
 		black.final_save()
 		white.final_save()
@@ -86,47 +99,87 @@ def hardcore_training(total_iterations: int = 100_000, interval_log: int = 1000)
 
 		black_dqn = black
 		white_dqn = white
+
+		tournament_mode = True
+
 		#test against random white
 		print("test " + str(i) + ", BLACK DQN VS WHITE RANDOM")
-		for j in range(244): #244 possible first move -> wrap up
-			white: RandomAgent = RandomAgent(color=Color.WHITE)
-			main()
+		black.num_games_won = 0
+		white.num_games_won = 0
+		num_episodes = 244
+		white = RandomAgent(color=Color.WHITE)
+		main()
+		log("test " + str(i) + "\tBLACK DQN VS WHITE RANDOM\t" + str(black.num_games_won) + "\t" + str(white.num_games_won))
+
+		#test against random black
+		black = black_dqn
+		white = white_dqn
+		print("test " + str(i) + ", BLACK RANDOM VS WHITE DQN")
+		black.num_games_won = 0
+		white.num_games_won = 0
+		num_episodes = 244
+		black = RandomAgent(color=Color.BLACK)
+		main()
+		log("test " + str(i) + "\tBLACK RANDOM VS WHITE DQN\t" + str(black.num_games_won) + "\t" + str(white.num_games_won))
+
+		#test against risk region white
+		black = black_dqn
+		white = white_dqn
+		print("test " + str(i) + ", BLACK DQN VS WHITE RISK_REGION")
+		black.num_games_won = 0
+		white.num_games_won = 0
+		num_episodes = 244
+		white = RiskRegionsAgent(color=Color.WHITE)
+		main()
+		log("test " + str(i) + "\tBLACK DQN VS WHITE RISK_REGION\t" + str(black.num_games_won) + "\t" + str(white.num_games_won))
+
+		# test against risk region white
+		black = black_dqn
+		white = white_dqn
+		print("test " + str(i) + ", BLACK RISK_REGION VS WHITE DQN")
+		black.num_games_won = 0
+		white.num_games_won = 0
+		num_episodes = 244
+		black = RiskRegionsAgent(color=Color.BLACK)
+		main()
+		log("test " + str(i) + "\tBLACK RISK_REGION VS WHITE DQN\t" + str(black.num_games_won) + "\t" + str(white.num_games_won))
 
 if __name__ == "__main__":
+	hardcore_training()
 	# initialize global variables
-	board_size: int = 8  # the size of the board e.g. 8x8
-	verbose: bool = False  # whether or not to print intermediate steps
-	tournament_mode = False #change every game of starting position or -> False every 4 games
-
-	# train 2 agents through deep Q learning
-	num_episodes: int = 50  # the number of episodes e.g. 100
-	black: DQNAgent = JaimeAgent(Color.BLACK, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
-	black.set_train_mode(True)
-	white: DQNAgent = JaimeAgent(Color.WHITE, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
-	white.action_value_network = black.action_value_network
-	white.target_network = white.target_network
-	white.set_train_mode(True)
-	main()
-
-	black.final_save()
-	white.final_save()
-
-	#save agents
-	dq_black = black
-	dq_white = white
-
-	# let the white agent play against a RandomAgent or a MinimaxAgent
-	num_episodes: int = 50  # the number of episodes e.g. 100
-	black.num_games_won = 0  # reset black agent
-	black.set_train_mode(False)
-	white: RandomAgent = RandomAgent(color=Color.WHITE) #MinimaxAgent(color=Color.WHITE, immediate_reward=MinimaxHeuristic(board_size))
-	main()
-
-	white = dq_white
-	# let the white agent play against a RandomAgent or a MinimaxAgent
-	num_episodes: int = 50  # the number of episodes e.g. 100
-	white.num_games_won = 0  # reset black agent
-	white.set_train_mode(False)
-	black: RandomAgent = RandomAgent(color=Color.BLACK) #MinimaxAgent(color=Color.WHITE, immediate_reward=MinimaxHeuristic(board_size))
-	main()
+	# board_size: int = 8  # the size of the board e.g. 8x8
+	# verbose: bool = False  # whether or not to print intermediate steps
+	# tournament_mode = False #change every game of starting position or -> False every 4 games
+	#
+	# # train 2 agents through deep Q learning
+	# num_episodes: int = 2000  # the number of episodes e.g. 100
+	# black: DQNAgent = JaimeAgent(Color.BLACK, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
+	# black.set_train_mode(True)
+	# white: DQNAgent = JaimeAgent(Color.WHITE, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
+	# white.action_value_network = black.action_value_network
+	# white.target_network = white.target_network
+	# white.set_train_mode(True)
+	# main()
+	#
+	# black.final_save()
+	# white.final_save()
+	#
+	# #save agents
+	# dq_black = black
+	# dq_white = white
+	#
+	# # let the white agent play against a RandomAgent or a MinimaxAgent
+	# num_episodes: int = 50  # the number of episodes e.g. 100
+	# black.num_games_won = 0  # reset black agent
+	# black.set_train_mode(False)
+	# white: RandomAgent = RandomAgent(color=Color.WHITE) #MinimaxAgent(color=Color.WHITE, immediate_reward=MinimaxHeuristic(board_size))
+	# main()
+	#
+	# white = dq_white
+	# # let the white agent play against a RandomAgent or a MinimaxAgent
+	# num_episodes: int = 50  # the number of episodes e.g. 100
+	# white.num_games_won = 0  # reset black agent
+	# white.set_train_mode(False)
+	# black: RandomAgent = RandomAgent(color=Color.BLACK) #MinimaxAgent(color=Color.WHITE, immediate_reward=MinimaxHeuristic(board_size))
+	# main()
 

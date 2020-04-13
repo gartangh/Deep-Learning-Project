@@ -136,3 +136,5 @@ othello/hyper_values/
 #pycharm
 .idea/
 
+# log
+othello/log.txt
