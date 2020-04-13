@@ -55,6 +55,42 @@ def main():
 
 	print()
 
+def hardcore_training(total_iterations: int = 100_000, interval_log: int = 1000):
+	# initialize global variables
+	board_size: int = 8  # the size of the board e.g. 8x8
+	verbose: bool = False  # whether or not to print intermediate steps
+	tournament_mode = False #change every game of starting position or -> False every 4 games
+
+	black: JaimeAgent = JaimeAgent(Color.BLACK, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
+	black.set_train_mode(True)
+	white: DQNAgent = JaimeAgent(Color.WHITE, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
+	white.action_value_network = black.action_value_network
+	white.target_network = white.target_network
+	white.set_train_mode(True)
+
+	black_dqn = black
+	white_dqn = white
+
+	total_runs = total_iterations // interval_log
+	for i in range(total_runs):
+		black = black_dqn
+		white = white_dqn
+		tournament_mode = False
+		main()
+
+		black.final_save()
+		white.final_save()
+
+		black.set_train_mode(False)
+		white.set_train_mode(False)
+
+		black_dqn = black
+		white_dqn = white
+		#test against random white
+		print("test " + str(i) + ", BLACK DQN VS WHITE RANDOM")
+		for j in range(244): #244 possible first move -> wrap up
+			white: RandomAgent = RandomAgent(color=Color.WHITE)
+			main()
 
 if __name__ == "__main__":
 	# initialize global variables
