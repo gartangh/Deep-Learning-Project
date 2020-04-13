@@ -11,10 +11,8 @@ class TrainableAgent(Agent):
 	def __init__(self, color: Color, immediate_reward: ImmediateReward = None, board_size: int = 8):
 		super().__init__(color, immediate_reward)
 		self.board_size: int = board_size
-		self.episode_rewards = []
-		self.training_errors = []
 		self.train_mode = False
-		self.replay_buffer = ReplayBuffer(size=int(10e5))
+		self.replay_buffer = ReplayBuffer()
 
 	def __str__(self):
 		return f'Trainable{super().__str__()}'

@@ -25,9 +25,6 @@ class JaimeAgent(DQNAgent):
 		# output: 1 node per board location, with probabilities to take action on that location
 		model: Sequential = Sequential()
 		model.add(Dense(self.board_size ** 2, input_shape=(self.board_size ** 2,), activation='relu'))
-		model.add(Dense((self.board_size - 1) ** 2, activation='relu'))
-		model.add(Dense((self.board_size - 2) ** 2, activation='relu'))
-		model.add(Dense((self.board_size - 1) ** 2, activation='relu'))
 		model.add(Dense(self.board_size ** 2, activation='softmax'))
 		model.compile(loss="mean_squared_error", optimizer=Adam(lr=lr))
 

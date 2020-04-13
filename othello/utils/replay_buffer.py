@@ -5,7 +5,7 @@ import numpy as np
 
 
 class ReplayBuffer:
-	def __init__(self, size: int = int(10e6)) -> None:
+	def __init__(self, size: int = int(10)) -> None:
 		self.size: int = int(size)
 		self.buffer: collections.deque = collections.deque(maxlen=self.size)
 
@@ -15,9 +15,6 @@ class ReplayBuffer:
 
 	def add(self, s: np.ndarray, a: tuple, r: float, next_s: np.ndarray, terminal: bool) -> None:
 		self.buffer.append((s, a, r, next_s, terminal))
-
-	def sample(self, size) -> list:
-		return random.sample(self.buffer, size)
 
 	def persist(self, path) -> None:
 		pickle.dump(self.buffer, open(path, 'wb'))

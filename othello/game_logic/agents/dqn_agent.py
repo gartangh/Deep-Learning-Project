@@ -12,7 +12,6 @@ from utils.color import Color
 from utils.immediate_rewards.immediate_reward import ImmediateReward
 from utils.policies.annealing_epsilon_greedy_policy import AnnealingEpsilonGreedyPolicy
 from utils.policies.epsilon_greedy_policy import EpsilonGreedyPolicy
-from utils.policies.random_policy import RandomPolicy
 
 import datetime
 
@@ -27,21 +26,10 @@ class DQNAgent(TrainableAgent):
 		self.play_policy: EpsilonGreedyPolicy = EpsilonGreedyPolicy(self.epsilon, board_size)
 		self.training_policy: AnnealingEpsilonGreedyPolicy = AnnealingEpsilonGreedyPolicy(self.epsilon, 0, 1000, 75_000,
 		                                                                                  board_size)
-		self.buffer_filling_policy: RandomPolicy = RandomPolicy()
-
-		# after n_steps_start_learning steps, use policy instead of buffer_filling_policy
-		# and start training the neural net
-		self.n_steps_start_learning: int = 32
 
 		# old and new network to compare training loss
 		self.action_value_network: Sequential = self.create_model()
 		self.target_network: Sequential = self.create_model()
-
-		# number of steps per mini batch
-		self.mini_batch_size: int = 32
-
-		# learn every learning_frequency steps (after n_steps_start_learning have passed)
-		self.learning_frequency: int = 32
 
 		# save the weights of action_value_network periodically, i.e. when
 		# self.n_training_cycles % self.persist_weights_every_n_times_trained == 0:
@@ -70,8 +58,6 @@ class DQNAgent(TrainableAgent):
 		# output: 1 node per board location, with probabilities to take action on that location
 		model: Sequential = Sequential()
 		model.add(Dense(2 * self.board_size ** 2, input_shape=(2 * self.board_size ** 2,), activation='relu'))
-		model.add(Dense(2 * (self.board_size - 1) ** 2, activation='relu'))
-		model.add(Dense(2 * (self.board_size - 2) ** 2, activation='relu'))
 		model.add(Dense(self.board_size ** 2, activation='softmax'))
 		model.compile(loss="mean_squared_error", optimizer=Adam(lr=lr))
 
@@ -79,12 +65,10 @@ class DQNAgent(TrainableAgent):
 
 	def train(self, board: Board, action: tuple, reward: float, next_board: Board, terminal: bool, render: bool = False):
 		assert (self.train_mode is True)
-		self.episode_rewards.append(reward)
 		self.replay_buffer.add(board.board, action, reward, next_board.board, terminal)
 
 		if self._can_start_learning():
-			training_error = self.q_learn_mini_batch()
-			self.training_errors.append(training_error)
+			self.q_learn_mini_batch()
 			self._persist_weights_if_necessary()
 
 		self.n_steps += 1
@@ -95,14 +79,10 @@ class DQNAgent(TrainableAgent):
 		return
 
 	def get_next_action(self, board: Board, legal_actions: dict) -> tuple:
-		if self.n_steps < self.n_steps_start_learning:
-			action = self.buffer_filling_policy.get_action(board.board, legal_actions)
-		elif self.train_mode is True:
-			action = self.training_policy.get_action(self.board_to_nn_input(board.board), self.action_value_network,
-			                                         legal_actions)
+		if self.train_mode is True:
+			action = self.training_policy.get_action(self.board_to_nn_input(board.board), self.action_value_network, legal_actions)
 		else:
-			action = self.play_policy.get_action(self.board_to_nn_input(board.board), self.action_value_network,
-			                                     legal_actions)
+			action = self.play_policy.get_action(self.board_to_nn_input(board.board), self.action_value_network, legal_actions)
 
 		return action, legal_actions[action]
 
@@ -110,7 +90,7 @@ class DQNAgent(TrainableAgent):
 		self.n_training_cycles += 1
 
 		# Sample a mini batch from our buffer
-		mini_batch: list = self.replay_buffer.sample(self.mini_batch_size)
+		mini_batch: list = self.replay_buffer.sample()
 
 		# Extract states and subsequent states from mini batch
 		states: np.array = np.array([self.board_to_nn_input(sample[0]) for sample in mini_batch])
@@ -170,9 +150,7 @@ class DQNAgent(TrainableAgent):
 		self.target_network.set_weights(target_weights)
 
 	def _can_start_learning(self) -> bool:
-		return self.n_steps > self.n_steps_start_learning and \
-		       self.n_steps % self.learning_frequency == 0 and \
-		       self.replay_buffer.n_obs > self.mini_batch_size
+		return self.n_steps > 0
 
 	def _persist_weights_if_necessary(self) -> None:
 		if self.n_training_cycles % self.persist_weights_every_n_times_trained == 0:

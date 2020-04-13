@@ -6,9 +6,8 @@ from colorama import init
 from termcolor import colored
 
 from game_logic.game import Game
-from game_logic.agents.minimax_agent import MinimaxAgent
 from game_logic.agents.random_agent import RandomAgent
-from utils.immediate_rewards.minimax_heuristic import MinimaxHeuristic
+from utils.immediate_rewards.bench_heuristic import BenchHeuristic
 
 
 def main():
@@ -23,12 +22,6 @@ def main():
 	print(f'\nAgents:\n\t{black}\n\t{white}\n')
 
 	for episode in range(1, num_episodes + 1):
-		if isinstance(black, TrainableAgent):
-			black.episode_rewards = []
-			black.training_errors = []
-		if isinstance(white, TrainableAgent):
-			white.episode_rewards = []
-			white.training_errors = []
 
 		# create new game
 		game: Game = Game(episode, black, white, board_size, verbose, tournament_mode)
@@ -64,9 +57,9 @@ if __name__ == "__main__":
 
 	# train 2 agents through deep Q learning
 	num_episodes: int = 1000  # the number of episodes e.g. 100
-	black: DQNAgent = JaimeAgent(Color.BLACK, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
+	black: DQNAgent = JaimeAgent(Color.BLACK, immediate_reward=BenchHeuristic(board_size), board_size=board_size)
 	black.set_train_mode(True)
-	white: DQNAgent = JaimeAgent(Color.WHITE, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
+	white: DQNAgent = JaimeAgent(Color.WHITE, immediate_reward=BenchHeuristic(board_size), board_size=board_size)
 	white.action_value_network = black.action_value_network
 	white.target_network = white.target_network
 	white.set_train_mode(True)
@@ -88,7 +81,6 @@ if __name__ == "__main__":
 
 	white = dq_white
 	# let the white agent play against a RandomAgent or a MinimaxAgent
-	num_episodes: int = 50  # the number of episodes e.g. 100
 	white.num_games_won = 0  # reset black agent
 	white.set_train_mode(False)
 	black: RandomAgent = RandomAgent(color=Color.BLACK) #MinimaxAgent(color=Color.WHITE, immediate_reward=MinimaxHeuristic(board_size))
