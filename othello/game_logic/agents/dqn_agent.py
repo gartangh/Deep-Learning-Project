@@ -18,8 +18,8 @@ import datetime
 class DQNAgent(TrainableAgent):
 	def __init__(self, color: Color, immediate_reward: ImmediateReward = None, board_size: int = 8):
 		super().__init__(color, immediate_reward, board_size)
-		self.end_eps: float = 0  # epsilon
-		self.discount_factor: float = 0.99
+		self.end_eps: float = 0.1  # epsilon
+		self.discount_factor: float = 1.0
 
 		# start with epsilon 0.99 and slowly decrease it over 75 000 steps
 		self.play_policy: EpsilonGreedyPolicy = EpsilonGreedyPolicy(self.end_eps, board_size)
@@ -73,8 +73,7 @@ class DQNAgent(TrainableAgent):
 
 		return model
 
-	def train(self, board: Board, action: tuple, reward: float, next_board: Board, terminal: bool,
-	          render: bool = False):
+	def train(self, board: Board, action: tuple, reward: float, next_board: Board, terminal: bool, render: bool = False):
 		assert (self.train_mode is True)
 		self.episode_rewards.append(reward)
 		self.replay_buffer.add(board.board, action, reward, next_board.board, terminal)

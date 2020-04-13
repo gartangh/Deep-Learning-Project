@@ -76,9 +76,8 @@ if __name__ == "__main__":
 
 	# let the white agent play against a RandomAgent or a MinimaxAgent
 	num_episodes: int = 50  # the number of episodes e.g. 100
-	tournament_mode = True
 	black.num_games_won = 0  # reset black agent
 	black.set_train_mode(False)
-	white: MinimaxAgent = MinimaxAgent(color=Color.WHITE, immediate_reward=MinimaxHeuristic(board_size))
+	white: RandomAgent = RandomAgent(color=Color.WHITE)
 	main()
 

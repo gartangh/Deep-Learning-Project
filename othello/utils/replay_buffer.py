@@ -29,3 +29,7 @@ class ReplayBuffer:
 			self.buffer.append(as_list[len(as_list) - self.size:len(as_list)])
 		else:
 			self.buffer: collections.deque = other_buffer
+
+	# delete and return the last added element
+	def pop(self) -> tuple:
+		return self.buffer.pop()

@@ -45,3 +45,7 @@ class MinimaxHeuristic(ImmediateReward):
 		immediate_reward: float = 1.0 * (board_score - prev_board_score)
 
 		return immediate_reward
+
+	def final_reward(self, won : bool) -> float:
+		reward = sum(self._weights)
+		return reward if won else -reward
