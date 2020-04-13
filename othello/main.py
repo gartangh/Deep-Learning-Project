@@ -1,4 +1,5 @@
 from game_logic.agents.dqn_agent import DQNAgent
+from game_logic.agents.jaime_agent import JaimeAgent
 from game_logic.agents.trainable_agent import TrainableAgent
 from utils.color import Color
 from colorama import init
@@ -15,7 +16,7 @@ def main():
 	init()
 
 	# check global variables
-	assert 1 <= num_episodes <= 10000, f'Invalid number of episodes: num_episodes should be between 1 and 10000, but got {num_episodes}'
+	assert 1 <= num_episodes <= 10000000, f'Invalid number of episodes: num_episodes should be between 1 and 10000, but got {num_episodes}'
 	assert black.num_games_won == 0, f'Invalid black agent'
 	assert white.num_games_won == 0, f'Invalid white agent'
 
@@ -63,9 +64,9 @@ if __name__ == "__main__":
 
 	# train 2 agents through deep Q learning
 	num_episodes: int = 1000  # the number of episodes e.g. 100
-	black: DQNAgent = DQNAgent(Color.BLACK, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
+	black: DQNAgent = JaimeAgent(Color.BLACK, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
 	black.set_train_mode(True)
-	white: DQNAgent = DQNAgent(Color.WHITE, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
+	white: DQNAgent = JaimeAgent(Color.WHITE, immediate_reward=MinimaxHeuristic(board_size), board_size=board_size)
 	white.action_value_network = black.action_value_network
 	white.target_network = white.target_network
 	white.set_train_mode(True)
@@ -74,10 +75,22 @@ if __name__ == "__main__":
 	black.final_save()
 	white.final_save()
 
+	#save agents
+	dq_black = black
+	dq_white = white
+
 	# let the white agent play against a RandomAgent or a MinimaxAgent
 	num_episodes: int = 50  # the number of episodes e.g. 100
 	black.num_games_won = 0  # reset black agent
 	black.set_train_mode(False)
-	white: RandomAgent = RandomAgent(color=Color.WHITE)
+	white: RandomAgent = RandomAgent(color=Color.WHITE) #MinimaxAgent(color=Color.WHITE, immediate_reward=MinimaxHeuristic(board_size))
+	main()
+
+	white = dq_white
+	# let the white agent play against a RandomAgent or a MinimaxAgent
+	num_episodes: int = 50  # the number of episodes e.g. 100
+	white.num_games_won = 0  # reset black agent
+	white.set_train_mode(False)
+	black: RandomAgent = RandomAgent(color=Color.BLACK) #MinimaxAgent(color=Color.WHITE, immediate_reward=MinimaxHeuristic(board_size))
 	main()
 
