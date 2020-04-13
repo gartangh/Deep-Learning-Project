@@ -25,7 +25,7 @@ class DQNAgent(TrainableAgent):
 
 		# start with epsilon 0.99 and slowly decrease it over 75 000 steps
 		self.play_policy: EpsilonGreedyPolicy = EpsilonGreedyPolicy(self.epsilon, board_size)
-		self.training_policy: AnnealingEpsilonGreedyPolicy = AnnealingEpsilonGreedyPolicy(self.epsilon, 0, 1000, 75_000,
+		self.training_policy: AnnealingEpsilonGreedyPolicy = AnnealingEpsilonGreedyPolicy(self.epsilon, 0, 75_000,
 		                                                                                  board_size)
 		self.buffer_filling_policy: RandomPolicy = RandomPolicy()
 

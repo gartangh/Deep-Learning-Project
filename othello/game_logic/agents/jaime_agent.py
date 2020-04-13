@@ -13,7 +13,7 @@ class JaimeAgent(DQNAgent):
 		super().__init__(color, immediate_reward, board_size)
 		self.discount_factor: float = 1.0
 		self.epsilon: float = 0.1
-		self.training_policy: AnnealingEpsilonGreedyPolicy = AnnealingEpsilonGreedyPolicy(self.epsilon, 0, 1000, 75_000,
+		self.training_policy: AnnealingEpsilonGreedyPolicy = AnnealingEpsilonGreedyPolicy(self.epsilon, 0.001, 75_000,
 		                                                                                  board_size)
 
 	def __str__(self):

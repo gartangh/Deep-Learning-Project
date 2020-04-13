@@ -82,6 +82,8 @@ def hardcore_training(total_iterations: int = 100_000, interval_log: int = 5000)
 	for i in range(total_runs):
 		black = black_dqn
 		white = white_dqn
+		black.num_games_won = 0
+		white.num_games_won = 0
 
 		black.set_train_mode(True)
 		white.set_train_mode(True)
