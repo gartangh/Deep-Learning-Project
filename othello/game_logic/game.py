@@ -1,5 +1,6 @@
 import numpy as np
 from termcolor import colored
+import numpy as np
 
 from game_logic.agents.agent import Agent
 from game_logic.agents.trainable_agent import TrainableAgent
@@ -80,7 +81,6 @@ class Game:
 			if not self.done:
 				# change turns
 				self.agent = self.black if self.agent == self.white else self.white
-
 			else:
 				# the game is done
 				# update scores of both agents
