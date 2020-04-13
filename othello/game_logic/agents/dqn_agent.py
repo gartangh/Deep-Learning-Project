@@ -18,12 +18,12 @@ import datetime
 class DQNAgent(TrainableAgent):
 	def __init__(self, color: Color, immediate_reward: ImmediateReward = None, board_size: int = 8):
 		super().__init__(color, immediate_reward, board_size)
-		self.end_eps: float = 0  # epsilon
+		self.epsilon: float = 0.1  # epsilon
 		self.discount_factor: float = 0.99
 
 		# start with epsilon 0.99 and slowly decrease it over 75 000 steps
-		self.play_policy: EpsilonGreedyPolicy = EpsilonGreedyPolicy(self.end_eps, board_size)
-		self.training_policy: AnnealingEpsilonGreedyPolicy = AnnealingEpsilonGreedyPolicy(0.99, self.end_eps, 75_000,
+		self.play_policy: EpsilonGreedyPolicy = EpsilonGreedyPolicy(self.epsilon, board_size)
+		self.training_policy: AnnealingEpsilonGreedyPolicy = AnnealingEpsilonGreedyPolicy(self.epsilon, 0, 1000, 75_000,
 		                                                                                  board_size)
 		self.buffer_filling_policy: RandomPolicy = RandomPolicy()
 
