@@ -13,8 +13,8 @@ class ReplayBuffer:
 	def n_obs(self) -> int:
 		return len(self.buffer)
 
-	def add(self, s: np.ndarray, a: tuple, r: float, next_s: np.ndarray, terminal: bool) -> None:
-		self.buffer.append((s, a, r, next_s, terminal))
+	def add(self, s: np.ndarray, a: tuple, r: float, terminal: bool) -> None:
+		self.buffer.append((s, a, r, terminal))
 
 	def persist(self, path) -> None:
 		pickle.dump(self.buffer, open(path, 'wb'))
@@ -26,7 +26,3 @@ class ReplayBuffer:
 			self.buffer.append(as_list[len(as_list) - self.size:len(as_list)])
 		else:
 			self.buffer: collections.deque = other_buffer
-
-	# delete and return the last added element
-	def pop(self) -> tuple:
-		return self.buffer.pop()

@@ -61,7 +61,6 @@ if __name__ == "__main__":
 	black.set_train_mode(True)
 	white: DQNAgent = JaimeAgent(Color.WHITE, immediate_reward=BenchHeuristic(board_size), board_size=board_size)
 	white.action_value_network = black.action_value_network
-	white.target_network = white.target_network
 	white.set_train_mode(True)
 	main()
 

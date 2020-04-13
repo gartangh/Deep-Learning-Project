@@ -44,8 +44,17 @@ class MinimaxHeuristic(ImmediateReward):
 		prev_board_score: int = self._evaluate_board(board.prev_board, color_value)
 		immediate_reward: float = 1.0 * (board_score - prev_board_score)
 
-		return immediate_reward
+		# check if this is the final reward for the agent
+		if len(Board.get_legal_actions(board, color_value)) == 1 and len(Board.get_legal_actions(board, 1-color_value)) == 1:
+			if board.num_black_disks > board.num_white_disks:
+				if color_value == 0:
+					immediate_reward += sum(sum(self._weights))
+				else:
+					immediate_reward -= sum(sum(self._weights))
+			elif board.num_black_disks < board.num_white_disks:
+				if color_value == 0:
+					immediate_reward -= sum(sum(self._weights))
+				else:
+					immediate_reward += sum(sum(self._weights))
 
-	def final_reward(self, won : bool) -> float:
-		reward = sum(self._weights)
-		return reward if won else -reward
+		return immediate_reward

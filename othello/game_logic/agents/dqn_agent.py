@@ -12,6 +12,7 @@ from utils.color import Color
 from utils.immediate_rewards.immediate_reward import ImmediateReward
 from utils.policies.annealing_epsilon_greedy_policy import AnnealingEpsilonGreedyPolicy
 from utils.policies.epsilon_greedy_policy import EpsilonGreedyPolicy
+from utils.replay_buffer import ReplayBuffer
 
 import datetime
 
@@ -22,6 +23,8 @@ class DQNAgent(TrainableAgent):
 		self.epsilon: float = 0.1  # epsilon
 		self.discount_factor: float = 1.0
 
+		self.replay_buffer = ReplayBuffer(2)
+
 		# start with epsilon 0.99 and slowly decrease it over 75 000 steps
 		self.play_policy: EpsilonGreedyPolicy = EpsilonGreedyPolicy(self.epsilon, board_size)
 		self.training_policy: AnnealingEpsilonGreedyPolicy = AnnealingEpsilonGreedyPolicy(self.epsilon, 0, 1000, 75_000,
@@ -29,7 +32,6 @@ class DQNAgent(TrainableAgent):
 
 		# old and new network to compare training loss
 		self.action_value_network: Sequential = self.create_model()
-		self.target_network: Sequential = self.create_model()
 
 		# save the weights of action_value_network periodically, i.e. when
 		# self.n_training_cycles % self.persist_weights_every_n_times_trained == 0:
@@ -38,13 +40,9 @@ class DQNAgent(TrainableAgent):
 		if not os.path.exists(self.weight_persist_path):
 			os.makedirs(self.weight_persist_path)
 
-		# rate at which target_network is updated to be the same as action_value_network
-		self.target_network_update_freq: float = 0.01 * self.replay_buffer.size
-
 		# Bookkeeping values
 		self.n_training_cycles: int = 0
 		self.n_steps: int = 0
-		self.n_episodes: int = 0
 
 		self.load_weights()
 
@@ -63,18 +61,15 @@ class DQNAgent(TrainableAgent):
 
 		return model
 
-	def train(self, board: Board, action: tuple, reward: float, next_board: Board, terminal: bool, render: bool = False):
+	def train(self, board: np.ndarray, action: tuple, reward: float, terminal: bool, render: bool = False):
 		assert (self.train_mode is True)
-		self.replay_buffer.add(board.board, action, reward, next_board.board, terminal)
+		self.replay_buffer.add(board, action, reward, terminal)
 
 		if self._can_start_learning():
-			self.q_learn_mini_batch()
+			self.q_learn()
 			self._persist_weights_if_necessary()
 
 		self.n_steps += 1
-
-		if self.n_steps % self.target_network_update_freq == 1:
-			self.update_target_network()
 
 		return
 
@@ -86,71 +81,45 @@ class DQNAgent(TrainableAgent):
 
 		return action, legal_actions[action]
 
-	def q_learn_mini_batch(self) -> list:
+	def q_learn(self):
 		self.n_training_cycles += 1
 
-		# Sample a mini batch from our buffer
-		mini_batch: list = self.replay_buffer.sample()
+		# get most recent move: (s', a', r', t')
+		curr_state, curr_action, curr_reward, curr_terminal = self.replay_buffer.buffer[-1]
+		# get the move before that: (s, a, r, t)
+		prev_state, prev_action, prev_reward, prev_terminal = self.replay_buffer.buffer[-2]
+		if prev_terminal:
+			target_q = self.action_value_network.predict(self.board_to_nn_input(prev_state))
+			target_q[0][prev_action[0] * self.board_size + prev_action[1]] = prev_reward
+			self.action_value_network.train_on_batch(self.board_to_nn_input(prev_state), target_q)
+			return
 
-		# Extract states and subsequent states from mini batch
-		states: np.array = np.array([self.board_to_nn_input(sample[0]) for sample in mini_batch])
-		next_states: np.array = np.array([self.board_to_nn_input(sample[3]) for sample in mini_batch])
+		# calculate the new estimate of Q(s,a)
+		# via formula Q(s,a) = r + gamma * max Q(s', a')
+		# but only consider the legal actions a'
+		q_values: np.array = self.action_value_network.predict(self.board_to_nn_input(curr_state)).flatten()
+		q_values: list = [(q_values[row * self.board_size + col], (row, col)) for row in range(self.board_size) for col in range(self.board_size)]
+		q_values: list = sorted(q_values, key=lambda q: q[0])
 
-		# reshape from (x,1,y) to (x,y)
-		states: np.array = states.reshape((states.shape[0], states.shape[-1]))
-		next_states: np.array = next_states.reshape((states.shape[0], states.shape[-1]))
+		legal_next_actions = Board._get_legal_actions(curr_state, self.board_size, self.color.value)
+		best_q: int = 0
+		n_actions: int = len(q_values) - 1
+		while n_actions >= 0:
+			if q_values[n_actions][1] in legal_next_actions:
+				best_q: int = q_values[n_actions][0]
+				break
+			n_actions -= 1
 
-		# We predict the Q values for all current states in the batch using the online network to use as targets.
-		# The Q values for the state-action pairs that are being trained on in the mini batch will be overridden with
-		# the real target r + gamma * argmax[Q(s', a); target network]
-		targets = self.action_value_network.predict(states)
+		new_q_previous_state = prev_reward + curr_reward if curr_terminal and n_actions < 0 else prev_reward + self.discount_factor * best_q
 
-		# Predict all next Q values for the subsequent states in the batch using the target network
-		target_q_values_next_states = self.target_network.predict(next_states)
-
-		for sample_nr, transition in enumerate(mini_batch):
-			# action: tuple, reward: float, next_board: np.ndarray, terminal: bool
-			__, action, reward, next_board, terminal = transition
-			q_values: np.array = target_q_values_next_states[sample_nr].flatten()
-
-			# associate each q value with its location on the board
-			q_values: list = [(q_values[row * self.board_size + col], (row, col)) for row in range(self.board_size) for
-			                  col in range(self.board_size)]
-
-			# calculate the best q value achievable in next_state and the corresponding action
-			best_next_action: str = 'pass'
-			q_value_next_state: int = 0
-			legal_actions = Board._get_legal_actions(next_board, self.board_size, self.color.value)
-
-			# get best legal action by sorting according to q value and taking the last legal entry
-			q_values: list = sorted(q_values, key=lambda q: q[0])
-			n_actions: int = len(q_values) - 1
-			while n_actions >= 0:
-				if q_values[n_actions][1] in legal_actions:
-					best_next_action = q_values[n_actions][1]
-					q_value_next_state: int = q_values[n_actions][0]
-					break
-				n_actions -= 1
-
-			if best_next_action is not 'pass':
-				# Insert real target value using r + gamma * argmax[Q(s', a); target network] if not terminal
-				if terminal:
-					# This is important as it gives you a stable, consistent reward which will not fluctuate (i.e. depend on the target network)
-					targets[sample_nr, action[0] * self.board_size + action[1]] = reward
-				else:
-					targets[sample_nr, action[0] * self.board_size + action[
-						1]] = reward + self.discount_factor * q_value_next_state
-
-		training_loss = self.action_value_network.train_on_batch(states, targets)
-
-		return training_loss
-
-	def update_target_network(self) -> None:
-		target_weights = self.action_value_network.get_weights()
-		self.target_network.set_weights(target_weights)
+		# train NN by backpropagating the error between old and new Q(s,a)
+		target_q = self.action_value_network.predict(self.board_to_nn_input(prev_state))
+		target_q[0][prev_action[0] * self.board_size + prev_action[1]] = new_q_previous_state
+		self.action_value_network.train_on_batch(self.board_to_nn_input(prev_state), target_q)
+		return
 
 	def _can_start_learning(self) -> bool:
-		return self.n_steps > 0
+		return self.n_steps > 1
 
 	def _persist_weights_if_necessary(self) -> None:
 		if self.n_training_cycles % self.persist_weights_every_n_times_trained == 0:
@@ -171,8 +140,7 @@ class DQNAgent(TrainableAgent):
 			path_values = os.path.join(path_values, "vals_{}.pkl".format(name))
 			values = {"decisions_made": self.training_policy.decisions_made,
 			          "n_training_cycles": self.n_training_cycles,
-			          "n_steps": self.n_steps,
-			          "n_episodes": self.n_episodes}
+			          "n_steps": self.n_steps}
 			pickle.dump(values, open(path_values, "wb"))
 
 	def final_save(self) -> None:
@@ -194,8 +162,7 @@ class DQNAgent(TrainableAgent):
 		path_values = os.path.join(path_values, "vals_{}.pkl".format(name))
 		values = {"decisions_made": self.training_policy.decisions_made,
 		          "n_training_cycles": self.n_training_cycles,
-		          "n_steps": self.n_steps,
-		          "n_episodes": self.n_episodes}
+		          "n_steps": self.n_steps}
 		pickle.dump(values, open(path_values, "wb"))
 
 	def load_weights(self, file_name=None) -> None:
@@ -217,7 +184,6 @@ class DQNAgent(TrainableAgent):
 			path_vals = os.path.join(path_values, "vals_" + file_name + ".pkl")
 
 		self.action_value_network.load_weights(path_network)  # loading in the action value network weights
-		self.update_target_network()  # setting the same weights into the target network
 
 		self.replay_buffer.load(path_replay)
 
@@ -226,6 +192,5 @@ class DQNAgent(TrainableAgent):
 		self.training_policy.decisions_made = values["decisions_made"]
 		self.n_training_cycles = values["n_training_cycles"]
 		self.n_steps = values["n_steps"]
-		self.n_episodes = values["n_episodes"]
 
 		print("WEIGHTS HAVE BEEN LOADED -> CONTINUING TRAINING")
