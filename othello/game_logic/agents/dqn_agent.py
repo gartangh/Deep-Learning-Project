@@ -179,8 +179,8 @@ class DQNAgent(TrainableAgent):
 		if self.n_training_cycles % self.persist_weights_every_n_times_trained == 0:
 			name = "BLACK" if self.color == Color.BLACK else "WHITE"
 			name = name + datetime.datetime.now().strftime("%y%m%d%H%M%S")
-			path: str = '{}/weights_agent_{}.h5f'.format(self.weight_persist_path, name)
-			self.action_value_network.save_weights(path, overwrite=True)
+			path: str = '{}/weights_agent_{}.h5'.format(self.weight_persist_path, name)
+			self.action_value_network.save(path, overwrite=True)
 
 			path: str = 'replay_buffers/' + ("BLACK" if self.color == Color.BLACK else "WHITE")
 			if not os.path.exists(path):
@@ -202,8 +202,8 @@ class DQNAgent(TrainableAgent):
 		name = "FINAL_"
 		name += "BLACK" if self.color == Color.BLACK else "WHITE"
 		name += datetime.datetime.now().strftime("%y%m%d%H%M%S")
-		path: str = '{}/weights_agent_{}.h5f'.format(self.weight_persist_path, name)
-		self.action_value_network.save_weights(path, overwrite=True)
+		path: str = '{}/weights_agent_{}.h5'.format(self.weight_persist_path, name)
+		self.action_value_network.save(path, overwrite=True)
 
 		path: str = 'replay_buffers/' + ("BLACK" if self.color == Color.BLACK else "WHITE")
 		if not os.path.exists(path):
@@ -225,22 +225,29 @@ class DQNAgent(TrainableAgent):
 		path = "replay_buffers/" + ("BLACK" if self.color == Color.BLACK else "WHITE")
 		path_values = "hyper_values/" + ("BLACK" if self.color == Color.BLACK else "WHITE")
 		if file_name is None:
-			path_network = tf.train.latest_checkpoint(self.weight_persist_path)
+			#path_network = tf.train.latest_checkpoint(self.weight_persist_path)
+			all_paths = os.listdir(self.weight_persist_path)
+			all_paths = sorted(all_paths, reverse=True)
+			path_network = all_paths[0] if len(all_paths) > 0 else None
+			print(path_network)
 			if path_network is None: return
+			path_network = os.path.join(self.weight_persist_path, path_network)
 			name = os.path.basename(path_network)
-			name = name.replace(".h5f", ".pkl")
+			name = name.replace(".h5", ".pkl")
 			path_replay = name.replace("weights_agent_", "replay_buffer_agent_")
 			path_replay = os.path.join(path, path_replay)
 
 			path_vals = name.replace("weights_agent_", "vals_")
 			path_vals = os.path.join(path_values, path_vals)
 		else:
-			path_network = os.path.join(self.weight_persist_path, "weights_agent_" + file_name + ".h5f")
+			path_network = os.path.join(self.weight_persist_path, "weights_agent_" + file_name + ".h5")
 			path_replay = os.path.join(path, "replay_buffer_agent_" + file_name + ".pkl")
 			path_vals = os.path.join(path_values, "vals_" + file_name + ".pkl")
 
 		self.action_value_network.load_weights(path_network)  # loading in the action value network weights
-		self.update_target_network()  # setting the same weights into the target network
+		self.action_value_network = tf.keras.models.load_model(path_network)
+		self.target_network = tf.keras.models.load_model(path_network)
+		#self.update_target_network()  # setting the same weights into the target network
 
 		self.replay_buffer.load(path_replay)
 
