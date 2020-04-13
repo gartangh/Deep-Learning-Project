@@ -77,10 +77,10 @@ class DQNAgent(TrainableAgent):
 
 		return model
 
-	def train(self, board: Board, action: tuple, reward: float, next_board: Board, terminal: bool, render: bool = False):
+	def train(self, board: np.ndarray, action: tuple, reward: float, next_board: np.ndarray, terminal: bool, render: bool = False):
 		assert (self.train_mode is True)
 		self.episode_rewards.append(reward)
-		self.replay_buffer.add(board.board, action, reward, next_board.board, terminal)
+		self.replay_buffer.add(board, action, reward, next_board, terminal)
 
 		if self._can_start_learning():
 			training_error = self.q_learn_mini_batch()
