@@ -14,7 +14,7 @@ class JaimeAgent(DQNAgent):
 		super().__init__(color, immediate_reward, board_size)
 
 	def __str__(self):
-		return f'JaimeAgent{super().__str__()}'
+		return f'Jaime{super().__str__()}'
 
 	def create_model(self, verbose: bool = False, lr: float = 0.00025) -> Sequential:
 		# input: 2 nodes per board location:

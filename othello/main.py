@@ -21,7 +21,7 @@ def main(num_episodes, black, white, board_size, verbose, tournament_mode, plot_
 	if plot_winratio:
 		win_rates = []
 		epsilons = []
-		last_ten_matches = []
+		last_twentyfive_matches = []
 		plt.ion()  # non-blocking plot
 		plt.title("Winratio of black (red), epsilon (green)")
 		plt.xlabel("number of games played")
@@ -44,18 +44,20 @@ def main(num_episodes, black, white, board_size, verbose, tournament_mode, plot_
 
 		if plot_winratio:
 			if game.board.num_black_disks > game.board.num_white_disks:
-				last_ten_matches.append(1)
+				last_twentyfive_matches.append(1)
 			elif game.board.num_black_disks < game.board.num_white_disks:
-				last_ten_matches.append(0)
+				last_twentyfive_matches.append(-1)
+			else:
+				last_twentyfive_matches.append(0)
 
-			if episode % 10 == 9 and len(last_ten_matches) > 0:
-				win_rates.append(sum(last_ten_matches) / len(last_ten_matches))
+			if plot_winratio and episode % 25 == 24 and len(last_twentyfive_matches) > 0:
+				win_rates.append(sum(last_twentyfive_matches) / len(last_twentyfive_matches))
 				epsilons.append(black.training_policy.current_eps_value)
-				plt.plot([i*10 for i in range(len(win_rates))], win_rates, color='red')
-				plt.plot([i*10 for i in range(len(win_rates))], epsilons, color='green')
+				plt.plot([i*25 for i in range(len(win_rates))], win_rates, color='red')
+				plt.plot([i*25 for i in range(len(win_rates))], epsilons, color='green')
 				plt.draw()
 				plt.pause(0.001)
-				last_ten_matches = []
+				last_twentyfive_matches = []
 	print()
 
 	ties: int = num_episodes - black.num_games_won - white.num_games_won
