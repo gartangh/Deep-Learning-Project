@@ -1,5 +1,4 @@
-import copy
-
+import numpy as np
 from termcolor import colored
 
 from game_logic.agents.agent import Agent
@@ -60,25 +59,22 @@ class Game:
 					print(f'Next action: {location}')
 				self.prev_pass = False  # this agent has legal actions, no pass
 
-				prev_board = copy.deepcopy(self.board) if isinstance(self.agent,
-				                                                     TrainableAgent) and self.agent.train_mode else None
+				prev_board = np.copy(self.board.board) if isinstance(self.agent,TrainableAgent) and self.agent.train_mode else None
 				self.done = self.board.take_action(location, legal_directions, self.agent.color.value)
 
 				# get immediate reward if agent makes use of it
 				if self.agent.immediate_reward:
-					immediate_reward: float = self.agent.immediate_reward.immediate_reward(self.board,
-					                                                                       self.agent.color.value)
+					immediate_reward: float = self.agent.immediate_reward.immediate_reward(self.board, self.agent.color.value)
 					if self.verbose:
 						print(f'Immediate reward: {immediate_reward}')
-					if isinstance(self.agent, TrainableAgent) and self.agent.train_mode:
-						# if the agent is ready, let it learn from the replay buffer
-						self.agent.train(prev_board, location, immediate_reward, self.board, self.done, render=False)
+					# remember the board, the taken action and the resulting reward
+					if isinstance(self.agent, TrainableAgent):
+						self.agent.replay_buffer.add(prev_board, location, immediate_reward, False)
 
 			if self.verbose:
 				print(self.board)
 
 			if not self.done:
-				# the game is not done yet
 				# change turns
 				self.agent = self.black if self.agent == self.white else self.white
 			else:
@@ -87,11 +83,24 @@ class Game:
 				self.black.update_final_score(self.board)
 				self.white.update_final_score(self.board)
 
+				# train the agents on the made moves
+				for i in [self.black, self.white]:
+					if isinstance(i, TrainableAgent) and i.train_mode:
+						# use a final reward for winning/losing
+						final_reward = i.immediate_reward.final_reward(self.board, i.color)
+						# change reward in last buffer entry
+						i.replay_buffer.add_final_reward(final_reward)
+						# learn from the game
+						i.train()
+						# clear the buffer
+						i.replay_buffer.clear()
+
 				# print end result
 				if self.board.num_black_disks > self.board.num_white_disks:
 					print(colored(
 						f'{self.episode:>5}: BLACK ({self.board.num_black_disks:>3}|{self.board.num_white_disks:>3}|{self.board.num_free_spots:>3})',
 						'red'))
+
 				elif self.board.num_black_disks < self.board.num_white_disks:
 					print(colored(
 						f'{self.episode:>5}: WHITE ({self.board.num_black_disks:>3}|{self.board.num_white_disks:>3}|{self.board.num_free_spots:>3})',

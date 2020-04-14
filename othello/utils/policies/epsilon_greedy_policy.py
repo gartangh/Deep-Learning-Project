@@ -21,21 +21,6 @@ class EpsilonGreedyPolicy(Policy):
 			return random.choice(list(legal_actions.keys()))
 		else:
 			q_values: np.array = action_value_network.predict(board)
-			best_action: Tuple[int, int] = self.optimal(q_values, legal_actions)
-			return best_action
-
-	def optimal(self, q_values: np.array, legal_actions: Dict[Tuple[int, int], List[Tuple[int, int]]]):
-		q_values: np.array = q_values.flatten()  # reshape (1,x) to (x,)
-		q_values: np.array = [(q_values[row * self.board_size + col], (row, col)) for row in range(self.board_size) for
-		                      col
-		                      in range(self.board_size)]
-
-		# get best legal action by sorting according to q value and taking the last legal entry
-		q_values: np.array = sorted(q_values, key=lambda q: q[0])
-		n_actions: int = len(q_values) - 1
-		while n_actions >= 0:
-			if q_values[n_actions][1] in legal_actions:
-				return q_values[n_actions][1]
-			n_actions -= 1
-
-		return 'pass'
+			indices = [row * self.board_size + col for (row, col) in legal_actions.keys()]
+			q_values = q_values[0, indices]  # q_values has shape (1,x)
+			return list(legal_actions)[q_values.argmax()]

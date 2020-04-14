@@ -8,13 +8,14 @@ from utils.replay_buffer import ReplayBuffer
 
 
 class TrainableAgent(Agent):
-	def __init__(self, color: Color, immediate_reward: ImmediateReward = None, board_size: int = 8):
+	def __init__(self, color: Color, immediate_reward: ImmediateReward = None, board_size: int = 8, load_old_weights: bool = False):
 		super().__init__(color, immediate_reward)
 		self.board_size: int = board_size
-		self.episode_rewards = []
-		self.training_errors = []
 		self.train_mode = False
-		self.replay_buffer = ReplayBuffer(size=int(10e5))
+		self.replay_buffer = ReplayBuffer(board_size ** 2)
+
+		if load_old_weights:
+			self.load_weights()
 
 	def __str__(self):
 		return f'Trainable{super().__str__()}'
@@ -25,23 +26,19 @@ class TrainableAgent(Agent):
 	def set_train_mode(self, mode: bool):
 		self.train_mode = mode
 
-	def train(self, board: Board, action: tuple, reward: float, next_board: Board, terminal: bool,
-	          render: bool = False):
+	def train(self):
 		raise NotImplementedError
 
 	def get_next_action(self, board: Board, legal_actions: dict) -> tuple:
 		raise NotImplementedError
 
-	def q_learn_mini_batch(self):
+	def _persist_weights(self):
 		raise NotImplementedError
 
-	def update_target_network(self):
+	def final_save(self) -> None:
 		raise NotImplementedError
 
-	def _can_start_learning(self):
-		raise NotImplementedError
-
-	def _persist_weights_if_necessary(self):
+	def load_weights(self, file_name=None) -> None:
 		raise NotImplementedError
 
 	def board_to_nn_input(self, board: np.ndarray):

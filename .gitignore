@@ -136,3 +136,10 @@ othello/hyper_values/
 #pycharm
 .idea/
 
+# log
+othello/log.txt
+backup/
+
+hyper_values/
+network_weights/
+replay_buffers/
