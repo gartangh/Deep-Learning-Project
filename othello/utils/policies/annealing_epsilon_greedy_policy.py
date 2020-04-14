@@ -31,7 +31,3 @@ class AnnealingEpsilonGreedyPolicy(Policy):
 	def get_action(self, board: np.ndarray, action_value_network: Sequential, legal_actions: dict) -> tuple:
 		self.decisions_made += 1
 		return self.get_current_eps_policy().get_action(board, action_value_network, legal_actions)
-
-	# TODO: remove this method and change with 2 policies in your DQN algo: one target_policy and one optimizing_policy
-	def optimal(self, q_values: np.ndarray, legal_actions: dict) -> tuple:
-		return self.get_current_eps_policy().optimal(q_values, legal_actions)

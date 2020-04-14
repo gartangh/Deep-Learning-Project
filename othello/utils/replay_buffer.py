@@ -16,6 +16,14 @@ class ReplayBuffer:
 	def add(self, s: np.ndarray, a: tuple, r: float, terminal: bool) -> None:
 		self.buffer.append((s, a, r, terminal))
 
+	def add_final_reward(self, final_reward: float) -> None:
+		last_element = self.buffer.pop()
+		if last_element is not None:
+			self.buffer.append((last_element[0], last_element[1], last_element[2] + final_reward, True))
+
+	def clear(self) -> None:
+		self.buffer.clear()
+
 	def persist(self, path) -> None:
 		pickle.dump(self.buffer, open(path, 'wb'))
 

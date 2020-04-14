@@ -1,6 +1,7 @@
 import numpy as np
 
 from game_logic.board import Board
+from utils.color import Color
 from utils.immediate_rewards.immediate_reward import ImmediateReward
 
 
@@ -42,19 +43,18 @@ class MinimaxHeuristic(ImmediateReward):
 	def immediate_reward(self, board: Board, color_value: int) -> float:
 		board_score: int = self._evaluate_board(board.board, color_value)
 		prev_board_score: int = self._evaluate_board(board.prev_board, color_value)
-		immediate_reward: float = 1.0 * (board_score - prev_board_score)
+		return 1.0 * (board_score - prev_board_score)
 
-		# check if this is the final reward for the agent
-		if len(Board.get_legal_actions(board, color_value)) == 1 and len(Board.get_legal_actions(board, 1-color_value)) == 1:
-			if board.num_black_disks > board.num_white_disks:
-				if color_value == 0:
-					immediate_reward += sum(sum(self._weights))
-				else:
-					immediate_reward -= sum(sum(self._weights))
-			elif board.num_black_disks < board.num_white_disks:
-				if color_value == 0:
-					immediate_reward -= sum(sum(self._weights))
-				else:
-					immediate_reward += sum(sum(self._weights))
-
-		return immediate_reward
+	def final_reward(self, board: Board, color: Color) -> float:
+		# TODO tune this reward
+		# if board.num_black_disks > board.num_white_disks:
+		# 	if color == Color.BLACK:
+		# 		return sum(sum(self._weights))
+		# 	else:
+		# 		return -sum(sum(self._weights))
+		# elif board.num_black_disks < board.num_white_disks:
+		# 	if color == Color.BLACK:
+		# 		return -sum(sum(self._weights))
+		# 	else:
+		# 		return sum(sum(self._weights))
+		return 0

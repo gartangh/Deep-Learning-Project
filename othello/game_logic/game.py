@@ -1,6 +1,5 @@
 import numpy as np
 from termcolor import colored
-import numpy as np
 
 from game_logic.agents.agent import Agent
 from game_logic.agents.trainable_agent import TrainableAgent
@@ -68,12 +67,9 @@ class Game:
 					immediate_reward: float = self.agent.immediate_reward.immediate_reward(self.board, self.agent.color.value)
 					if self.verbose:
 						print(f'Immediate reward: {immediate_reward}')
-					if isinstance(self.agent, TrainableAgent) and self.agent.train_mode:
-						# check if this was the last move for this player
-						if len(self.board.get_legal_actions(self.agent.color.value)) == 1 and len(self.board.get_legal_actions(1-self.agent.color.value)) == 1:
-							self.agent.train(prev_board, location, immediate_reward, True, render=False)
-						else:
-							self.agent.train(prev_board, location, immediate_reward, self.done, render=False)
+					# remember the board, the taken action and the resulting reward
+					if isinstance(self.agent, TrainableAgent):
+						self.agent.replay_buffer.add(prev_board, location, immediate_reward, False)
 
 			if self.verbose:
 				print(self.board)
@@ -86,6 +82,18 @@ class Game:
 				# update scores of both agents
 				self.black.update_final_score(self.board)
 				self.white.update_final_score(self.board)
+
+				# train the agents on the made moves
+				for i in [self.black, self.white]:
+					if isinstance(i, TrainableAgent) and i.train_mode:
+						# use a final reward for winning/losing
+						final_reward = i.immediate_reward.final_reward(self.board, i.color)
+						# change reward in last buffer entry
+						i.replay_buffer.add_final_reward(final_reward)
+						# learn from the game
+						i.train()
+						# clear the buffer
+						i.replay_buffer.clear()
 
 				# print end result
 				if self.board.num_black_disks > self.board.num_white_disks:
