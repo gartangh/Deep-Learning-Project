@@ -1,15 +1,16 @@
+from typing import Dict, List, Tuple
+
 import numpy as np
 
 from utils.color import Color
-from typing import Dict, List, Tuple
 
-
-#static values shared accross boards
+# static values shared across boards
 board_usage = None
 chosen_play1 = 0
 chosen_play2 = 0
 chosen_play3 = 0
 chosen_play4 = 0
+
 
 class Board:
 	# initialize static variables
@@ -21,12 +22,12 @@ class Board:
 		(-1, +0),  # up
 		(-1, -1),  # up left
 		(+0, -1),  # left
-		(+1, -1)  # down left
+		(+1, -1),  # down left
 	]
 
 	# public methods
 	# constructor
-	def __init__(self, board_size: int = 8, random_start: bool = True, change_board_after_n_plays: int = 4):
+	def __init__(self, board_size: int = 8, random_start: bool = False, change_board_after_n_plays: int = 4):
 		global chosen_play1, chosen_play2, chosen_play3, chosen_play4, board_usage
 		# check arguments
 		assert 4 <= board_size <= 12, f'Invalid board size: board_size should be between 4 and 12, but got {board_size}'
@@ -47,7 +48,7 @@ class Board:
 		self.num_white_disks: int = 2
 		self.num_free_spots: int = board_size ** 2 - 4
 
-		#adding random start at 4 steps in future (W - B - W - B)
+		# adding random start at 4 steps in future (W - B - W - B)
 		if self.random_start:
 			actions1 = self._get_legal_actions(self.board, self.board_size, Color.BLACK.value)
 			keys1 = list(actions1.keys())
@@ -69,15 +70,29 @@ class Board:
 			action_key4 = keys4[chosen_play4]
 			self.take_action(action_key4, actions4[action_key4], Color.WHITE.value)
 
-			if board_usage is not None and board_usage < self.change_board_after_n_plays - 1: board_usage += 1
+			if board_usage is not None and board_usage < self.change_board_after_n_plays - 1:
+				board_usage += 1
 			else:
-				if chosen_play4 + 1 < len(keys4): chosen_play4 += 1
-				elif chosen_play3 + 1 < len(keys3): chosen_play3 += 1; chosen_play4 = 0
-				elif chosen_play2 + 1 < len(keys2): chosen_play2 += 1; chosen_play3 = 0; chosen_play4 = 0
-				elif chosen_play1 + 1 < len(keys1): chosen_play1 += 1; chosen_play2 = 0; chosen_play3 = 0; chosen_play4 = 0
-				else: chosen_play1 = 0; chosen_play2 = 0; chosen_play3 = 0; chosen_play4 = 0
+				if chosen_play4 + 1 < len(keys4):
+					chosen_play4 += 1
+				elif chosen_play3 + 1 < len(keys3):
+					chosen_play3 += 1;
+					chosen_play4 = 0
+				elif chosen_play2 + 1 < len(keys2):
+					chosen_play2 += 1;
+					chosen_play3 = 0;
+					chosen_play4 = 0
+				elif chosen_play1 + 1 < len(keys1):
+					chosen_play1 += 1;
+					chosen_play2 = 0;
+					chosen_play3 = 0;
+					chosen_play4 = 0
+				else:
+					chosen_play1 = 0;
+					chosen_play2 = 0;
+					chosen_play3 = 0;
+					chosen_play4 = 0
 				board_usage = 0
-
 
 	def __str__(self):
 		string: str = '\t|'
@@ -113,6 +128,11 @@ class Board:
 
 		return new_board
 
+	def get_disks(self):
+		return self.board
+
+	def get_board_size(self):
+		return self.board_size
 
 	def get_legal_actions(self, color_value: int) -> dict:
 		return self._get_legal_actions(self.board, self.board_size, color_value)

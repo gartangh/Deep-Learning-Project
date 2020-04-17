@@ -24,7 +24,7 @@ class JaimeAgent(DQNAgent):
 		model: Sequential = Sequential()
 		model.add(Dense(self.board_size ** 2, input_shape=(self.board_size ** 2,), activation='relu'))
 		model.add(Dense(self.board_size ** 2, activation='softmax'))
-		model.compile(loss="mean_squared_error", optimizer=Adam(lr=lr))
+		model.compile(loss='mean_squared_error', optimizer=Adam(lr=lr))
 
 		return model
 

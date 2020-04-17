@@ -9,11 +9,10 @@ from utils.immediate_rewards.immediate_reward import ImmediateReward
 class MinimaxAgent(Agent):
 	def __init__(self, color: Color, immediate_reward: ImmediateReward, depth: int = 2):
 		super().__init__(color, immediate_reward)
-		self.name: str = "Minimax"
 		self.max_depth: int = depth
 
 	def __str__(self):
-		return f'{self.name}{super().__str__()}'
+		return f'Minimax{super().__str__()}'
 
 	@staticmethod
 	def _finished(board: Board) -> tuple:

@@ -128,18 +128,13 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Output directories
-othello/network_weights/
-othello/replay_buffers/
-othello/hyper_values/
-
 #pycharm
 .idea/
 
-# log
-othello/log.txt
-backup/
-
-hyper_values/
+# OWN
+# Output directories
 network_weights/
 replay_buffers/
+hyper_values/
+log.txt
+backup/
