@@ -1,12 +1,12 @@
 import collections
 import pickle
-import random
+
 import numpy as np
 
 
 class ReplayBuffer:
-	def __init__(self, size: int = int(10)) -> None:
-		self.size: int = int(size)
+	def __init__(self, size: int = 10) -> None:
+		self.size: int = size
 		self.buffer: collections.deque = collections.deque(maxlen=self.size)
 
 	@property
