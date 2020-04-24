@@ -16,7 +16,7 @@ class Config:
 		assert white.color is Color.WHITE, f'Invalid white agent: white agent\'s color is not white'
 		if not isinstance(white, TrainableAgent):
 			assert not train_white, f'Invalid white agent: white agent is not trainable'
-		assert 0 <= num_episodes <= 10000000, f'Invalid number of episodes: num_episodes should be between 0 and 10000, but got {num_episodes}'
+		assert 0 <= num_episodes <= 10000, f'Invalid number of episodes: num_episodes should be between 0 and 10000, but got {num_episodes}'
 		if not isinstance(black, TrainableAgent):
 			assert not plot_win_ratio, f'Cannot plot win ratio if black agent is not trainable'
 		if not plot_win_ratio:
@@ -35,7 +35,7 @@ class Config:
 		self.verbose_live: bool = verbose_live
 		self.random_start: bool = random_start
 
-		self.plot_every_n_episodes: int = ceil(self.num_episodes / 100)
+		self.plot_every_n_episodes: int = ceil(self.num_episodes / 20)
 
 		self.black.num_games_won = 0
 		if isinstance(black, TrainableAgent):
