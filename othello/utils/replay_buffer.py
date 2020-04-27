@@ -13,7 +13,7 @@ class ReplayBuffer:
 	def n_obs(self) -> int:
 		return len(self.buffer)
 
-	def add(self, s: np.ndarray, a: tuple, r: float, terminal: bool) -> None:
+	def add(self, s: np.array, a: tuple, r: float, terminal: bool) -> None:
 		self.buffer.append((s, a, r, terminal))
 
 	def add_final_reward(self, final_reward: float) -> None:
