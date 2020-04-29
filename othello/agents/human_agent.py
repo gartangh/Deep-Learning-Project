@@ -1,25 +1,25 @@
 import tkinter as tk
-from typing import List, Tuple
 
 import numpy as np
 
-from game_logic.agents.agent import Agent
+from agents.agent import Agent
 from game_logic.board import Board
 from utils.color import Color
+from utils.types import Directions, Location, Action
 
 
 class HumanAgent(Agent):
-	def __init__(self, color: Color):
-		assert color == Color.WHITE, f'Invalid color for HumanAgent: color must be WHITE, but got {color.name}'
+	def __init__(self, color: Color) -> None:
+		assert color is Color.WHITE, f'Invalid color for HumanAgent: color must be WHITE, but got {color.name}'
 
 		super().__init__(color)
 
 		self.first_move = True
 
-	def __str__(self):
-		return f'Human{super().__str__()}'
+	def __str__(self) -> str:
+		return f'Human{super().__str__()})'
 
-	def __update_board(self, board: Board, legal_directions: dict):
+	def __update_board(self, board: Board, legal_directions: dict) -> None:
 		disks: np.array = board.board
 		board_size: int = board.board_size
 		if self.first_move:
@@ -46,11 +46,11 @@ class HumanAgent(Agent):
 		self.root.update_idletasks()
 		self.root.update()
 
-	def get_next_action(self, board: Board, legal_directions: dict) -> tuple:
+	def next_action(self, board: Board, legal_directions: dict) -> Action:
 		self.__update_board(board, legal_directions)
 		while (not self.clicked):
 			continue
 		self.clicked = False
-		location: Tuple[int, int] = (self.selected_col, self.selected_row)
-		legal_directions: List[Tuple[int, int]] = legal_directions[location]
+		location: Location = (self.selected_col, self.selected_row)
+		legal_directions: Directions = legal_directions[location]
 		return location, legal_directions

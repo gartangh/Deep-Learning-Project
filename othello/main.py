@@ -1,21 +1,27 @@
-import matplotlib.pyplot as plt
+from typing import List
+
 from colorama import init
-from termcolor import colored
 from tqdm import tqdm
 
-from game_logic.agents.cnn_dqn_trainable_agent import CNNDQNTrainableAgent
-from game_logic.agents.dqn_trainable_agent import DQNTrainableAgent
-from game_logic.agents.human_agent import HumanAgent
-from game_logic.agents.minimax_agent import MinimaxAgent
-from game_logic.agents.random_agent import RandomAgent
-from game_logic.agents.risk_regions_agent import RiskRegionsAgent
-from game_logic.agents.trainable_agent import TrainableAgent
+from agents.agent import Agent
+from agents.cnn_trainable_agent import CNNTrainableAgent
+from agents.dense_trainable_agent import DenseTrainableAgent
+from agents.human_agent import HumanAgent
+from agents.trainable_agent import TrainableAgent
+from agents.untrainable_agent import UntrainableAgent
 from game_logic.game import Game
 from gui.controller import Controller
+from policies.annealing_trainable_policy import AnnealingTrainablePolicy
+from policies.epsilon_greedy_annealing_trainable_policy import EpsilonGreedyAnnealingTrainablePolicy
+from policies.random_untrainable_policy import RandomUntrainablePolicy
+from policies.top_k_normalized_trainable_policy import TopKNormalizedTrainablePolicy
+from policies.weights_untrainable_policy import WeightsUntrainablePolicy
+from rewards.difference_reward import DifferenceReward
+from rewards.fixed_reward import FixedReward
 from utils.color import Color
 from utils.config import Config
-from utils.global_config import GlobalConfig
-from utils.immediate_rewards.minimax_heuristic import MinimaxHeuristic
+from utils.plot import Plot
+from utils.risk_regions import risk_regions, bench
 
 
 def main() -> None:
@@ -25,85 +31,45 @@ def main() -> None:
 	# agents
 	black = config.black
 	white = config.white
-	print(f'\nAgents:\n\tBlack:\t{black}\n\tWhite:\t{white}\n')
+	print(f'\nAgents:\n\t{black}\n\t{white}\n')
 
-	win_rates = [0.0]
-	if isinstance(black, DQNTrainableAgent):
-		epsilons = [black.training_policy.current_eps_value]
-	last_matches = []
+	# initialize training policy
+	if isinstance(black, TrainableAgent) and isinstance(black.train_policy, AnnealingTrainablePolicy):
+		black.train_policy.num_episodes = config.num_episodes
+	if isinstance(white, TrainableAgent) and isinstance(white.train_policy, AnnealingTrainablePolicy):
+		white.train_policy.num_episodes = config.num_episodes
 
 	# initialize live plot
-	if config.plot_win_ratio_live:
-		plt.ion()  # non-blocking plot
-		plt.title('Win ratio of black (red), epsilon (green)')
-		plt.xlabel('number of games played')
-		plt.ylabel('win ratio and epsilon')
-		plt.show()
+	if config.plot is not None:
+		config.plot.set_plot_live(config.plot_win_ratio_live)
 
 	for episode in tqdm(range(1, config.num_episodes + 1)):
 		# create new game
-		game: Game = Game(global_config, config, episode)
+		game: Game = Game(board_size, config, episode)
 		if isinstance(white, HumanAgent):
 			# create GUI controller
 			controller: Controller = Controller(game)
+			# play game
 			controller.start()
 		else:
+			if isinstance(black, TrainableAgent) and isinstance(black.train_policy, AnnealingTrainablePolicy):
+				# update epsilon annealing policy
+				black.train_policy.update(episode)
+			if isinstance(white, TrainableAgent) and isinstance(black.train_policy, AnnealingTrainablePolicy):
+				# update epsilon annealing policy
+				white.train_policy.update(episode)
+
 			# play game
 			game.play()
 
 		# plot win ratio
-		if config.plot_win_ratio:
-			if game.board.num_black_disks > game.board.num_white_disks:
-				last_matches.append(1)
-			elif game.board.num_black_disks < game.board.num_white_disks:
-				last_matches.append(-1)
-			else:
-				last_matches.append(0)
+		if config.plot is not None:
+			config.plot.update(game.board.num_black_disks, game.board.num_white_disks, episode,
+			                   config.plot_every_n_episodes)
 
-			if episode % config.plot_every_n_episodes == config.plot_every_n_episodes - 1 and len(last_matches) > 0:
-				win_rates.append(sum(last_matches) / len(last_matches))
-				if isinstance(black, DQNTrainableAgent):
-					epsilons.append(black.training_policy.current_eps_value)
-				if config.plot_win_ratio_live:
-					plt.plot([i * config.plot_every_n_episodes for i in range(len(win_rates))], win_rates,
-					         color='red')
-					if isinstance(black, TrainableAgent):
-						plt.plot([i * config.plot_every_n_episodes for i in range(len(win_rates))], epsilons,
-						         color='green')
-					plt.draw()
-					plt.pause(0.001)
-				last_matches = []
-
-	# print end score
 	ties: int = config.num_episodes - black.num_games_won - white.num_games_won
-	if black.num_games_won > white.num_games_won:
-		print(colored(
-			f'\nBLACK {black.num_games_won:>5}/{config.num_episodes:>5} ({black.num_games_won:>5}|{white.num_games_won:>5}|{ties:>5})\n',
-			'red'))
-	elif black.num_games_won < white.num_games_won:
-		print(colored(
-			f'\nWHITE {white.num_games_won:>5}/{config.num_episodes:>5} ({black.num_games_won:>5}|{white.num_games_won:>5}|{ties:>5})\n',
-			'green'))
-	else:
-		print(colored(
-			f'\nDRAW  {black.num_games_won:>5}/{config.num_episodes:>5} ({black.num_games_won:>5}|{white.num_games_won:>5}|{ties:>5})\n',
-			'cyan'))
-
-	# plot win ratio
-	if config.plot_win_ratio_live:
-		# keep showing live plot
-		plt.ioff()
-		plt.show()
-	elif config.plot_win_ratio:
-		# show plot
-		plt.ion()  # non-blocking plot
-		plt.title('Win ratio of black (red), epsilon (green)')
-		plt.xlabel('number of games played')
-		plt.ylabel('win ratio and epsilon')
-		plt.plot([i * config.plot_every_n_episodes for i in range(len(win_rates))], win_rates, color='red')
-		plt.plot([i * config.plot_every_n_episodes for i in range(len(win_rates))], epsilons, color='green')
-		plt.show()
-		plt.draw()
+	print(f'({black.num_games_won:>4}|{white.num_games_won:>4}|{ties:>4}) / {config.num_episodes:>4}')
+	print(f'win ratio: {(black.num_games_won - white.num_games_won) / config.num_episodes}\n')
 
 	# save models
 	if isinstance(black, TrainableAgent) and black.train_mode:
@@ -111,146 +77,137 @@ def main() -> None:
 	if isinstance(white, TrainableAgent) and white.train_mode:
 		white.final_save()
 
-
-def log(logline: str, path: str = 'log.txt'):
-	with open(path, 'a') as f:
-		f.write(f'{logline}\n')
-
-
-def hardcore_training(black, white, board_size, total_iterations: int = 100_000, interval_log: int = 5000):
-	black_dqn = black
-	white_dqn = white
-
-	total_runs = total_iterations // interval_log
-	for i in range(total_runs):
-		black = black_dqn
-		white = white_dqn
-		black.num_games_won = 0
-		white.num_games_won = 0
-
-		black.set_train_mode(True)
-		white.set_train_mode(True)
-		num_episodes = interval_log
-		black = black_dqn
-		white = white_dqn
-		# TODO: use configs
-		# main(num_episodes, black, white, board_size, False, False, False)
-
-		black.final_save()
-		white.final_save()
-
-		black.set_train_mode(False)
-		white.set_train_mode(False)
-
-		black_dqn = black
-		white_dqn = white
-
-		tournament_mode = True
-
-		if isinstance(black, TrainableAgent):
-			# test against random white
-			print('test ' + str(i) + ', BLACK DQN VS WHITE RANDOM')
-			black.num_games_won = 0
-			white.num_games_won = 0
-			num_episodes = 244
-			white = RandomAgent(color=Color.WHITE)
-			# TODO: use configs
-			# main(num_episodes, black, white, board_size, False, tournament_mode, False)
-			log('test ' + str(i) + '\tBLACK DQN VS WHITE RANDOM\t' + str(black.num_games_won) + '\t' + str(
-				white.num_games_won))
-
-		if isinstance(white, TrainableAgent):
-			# test against random black
-			black = black_dqn
-			white = white_dqn
-			print('test ' + str(i) + ', BLACK RANDOM VS WHITE DQN')
-			black.num_games_won = 0
-			white.num_games_won = 0
-			num_episodes = 244
-			black = RandomAgent(color=Color.BLACK)
-			# TODO: use configs
-			# main(num_episodes, black, white, board_size, False, tournament_mode, False)
-			log('test ' + str(i) + '\tBLACK RANDOM VS WHITE DQN\t' + str(black.num_games_won) + '\t' + str(
-				white.num_games_won))
-
-		if isinstance(black, TrainableAgent):
-			# test against risk region white
-			black = black_dqn
-			white = white_dqn
-			print('test ' + str(i) + ', BLACK DQN VS WHITE RISK_REGION')
-			black.num_games_won = 0
-			white.num_games_won = 0
-			num_episodes = 244
-			white = RiskRegionsAgent(color=Color.WHITE)
-			# TODO: use configs
-			# main(num_episodes, black, white, board_size, False, tournament_mode, False)
-			log('test ' + str(i) + '\tBLACK DQN VS WHITE RISK_REGION\t' + str(black.num_games_won) + '\t' + str(
-				white.num_games_won))
-
-		if isinstance(white, TrainableAgent):
-			# test against risk region white
-			black = black_dqn
-			white = white_dqn
-			print('test ' + str(i) + ', BLACK RISK_REGION VS WHITE DQN')
-			black.num_games_won = 0
-			white.num_games_won = 0
-			num_episodes = 244
-			black = RiskRegionsAgent(color=Color.BLACK)
-			# TODO: use configs
-			# main(num_episodes, black, white, board_size, False, tournament_mode, False)
-			log('test ' + str(i) + '\tBLACK RISK_REGION VS WHITE DQN\t' + str(black.num_games_won) + '\t' + str(
-				white.num_games_won))
+	# reset agents
+	black.reset()
+	white.reset()
 
 
 if __name__ == '__main__':
-	# one-time global configuration
-	global_config: GlobalConfig = GlobalConfig(board_size=8, gui_size=400)  # global config
+	# board size
+	board_size: int = 8
 
-	# TRAIN
-	config: Config = Config(
-		black=CNNDQNTrainableAgent(
-			Color.BLACK,
-			immediate_reward=MinimaxHeuristic(global_config.board_size),
-			board_size=global_config.board_size
+	# trainable black agent
+	black: Agent = DenseTrainableAgent(
+		color=Color.BLACK,
+		train_policy=EpsilonGreedyAnnealingTrainablePolicy(
+			inner_policy=TopKNormalizedTrainablePolicy(board_size=board_size, k=3),
+			start_epsilon=1.0,
+			stop_epsilon=0.2,
 		),
-		train_black=True,
-		white=RandomAgent(Color.WHITE),
-		train_white=False,
-		num_episodes=500,
-		plot_win_ratio=True,
-		plot_win_ratio_live=True,
-		verbose=False,
-		verbose_live=False,
-		tournament_mode=False,
+		immediate_reward=DifferenceReward(),
+		final_reward=FixedReward(win=1000, draw=100, loss=-1000),
+		board_size=board_size,
 	)
-	main()
 
-	# EVALUATE
-	config: Config = Config(
-		black=config.black,
-		train_black=False,
-		white=config.white,
-		train_white=False,
-		num_episodes=100,
-		plot_win_ratio=False,
-		plot_win_ratio_live=False,
-		verbose=True,
-		verbose_live=False,
-		tournament_mode=False,
-	)
-	main()
+	# init plot
+	if isinstance(black, TrainableAgent):
+		plot: Plot = Plot(black)
+	else:
+		plot: None = None
 
-	# HUMAN
-	config: Config = Config(
-		black=config.black,
-		train_black=False,
-		white=HumanAgent(Color.WHITE),
-		train_white=False,
-		num_episodes=2,
-		plot_win_ratio=False,
-		plot_win_ratio_live=False,
-		verbose=True,
-		verbose_live=False,
-		tournament_mode=False,
-	)
-	main()
+	# train strategy
+	train_configs: List[Config] = [
+		# random
+		Config(
+			black=black,
+			train_black=True,
+			white=UntrainableAgent(color=Color.WHITE, policy=RandomUntrainablePolicy()),
+			train_white=False,
+			num_episodes=25_0,
+			plot=plot,
+			plot_win_ratio_live=True,
+			verbose=False,
+			verbose_live=False,
+			random_start=True,
+		),
+		# risk regions
+		Config(
+			black=black,
+			train_black=True,
+			white=UntrainableAgent(color=Color.WHITE, policy=WeightsUntrainablePolicy(risk_regions(board_size))),
+			train_white=False,
+			num_episodes=25_0,
+			plot=plot,
+			plot_win_ratio_live=True,
+			verbose=False,
+			verbose_live=False,
+			random_start=True,
+		),
+		# bench
+		Config(
+			black=black,
+			train_black=True,
+			white=UntrainableAgent(color=Color.WHITE, policy=WeightsUntrainablePolicy(bench(board_size))),
+			train_white=False,
+			num_episodes=25_0,
+			plot=plot,
+			plot_win_ratio_live=True,
+			verbose=False,
+			verbose_live=False,
+			random_start=True,
+		),
+	]
+	for config in train_configs:
+		main()
+
+	# after training is complete, save the plot
+	plot.save_plot()
+	plot.set_plot_live(False)
+
+	# test strategy
+	test_configs: List[Config] = [
+		Config(
+			black=black,
+			train_black=False,
+			white=UntrainableAgent(color=Color.WHITE, policy=RandomUntrainablePolicy()),
+			train_white=False,
+			num_episodes=1_0,
+			plot=None,
+			plot_win_ratio_live=False,
+			verbose=True,
+			verbose_live=False,
+			random_start=False,
+		),
+		Config(
+			black=black,
+			train_black=False,
+			white=UntrainableAgent(color=Color.WHITE, policy=WeightsUntrainablePolicy(risk_regions(board_size))),
+			train_white=False,
+			num_episodes=1_0,
+			plot=None,
+			plot_win_ratio_live=False,
+			verbose=True,
+			verbose_live=False,
+			random_start=False,
+		),
+		Config(
+			black=black,
+			train_black=False,
+			white=UntrainableAgent(color=Color.WHITE, policy=WeightsUntrainablePolicy(bench(board_size))),
+			train_white=False,
+			num_episodes=1_0,
+			plot=None,
+			plot_win_ratio_live=False,
+			verbose=True,
+			verbose_live=False,
+			random_start=False,
+		),
+
+	]
+	for config in test_configs:
+		main()
+
+	# play against a human
+	# config: Config = Config(
+	# 	black=black,
+	# 	train_black=False,
+	# 	white=HumanAgent(color=Color.WHITE),
+	# 	train_white=False,
+	# 	num_episodes=3,
+	# 	plot=None,
+	# 	plot_win_ratio_live=False,
+	# 	verbose=True,
+	# 	verbose_live=False,
+	# 	random_start=False,
+	# )
+	# main()
