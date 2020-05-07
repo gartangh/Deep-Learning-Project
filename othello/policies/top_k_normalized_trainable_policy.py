@@ -4,7 +4,7 @@ import numpy as np
 from numpy.random import choice
 
 from policies.trainable_policy import TrainablePolicy
-from utils.types import Actions, Action, Location, Directions
+from utils.types import Actions, Action, Directions, Location
 
 
 class TopKNormalizedTrainablePolicy(TrainablePolicy):
@@ -23,9 +23,13 @@ class TopKNormalizedTrainablePolicy(TrainablePolicy):
 		k: int = self.k if self.k <= len(legal_actions) else len(legal_actions)
 		indices: List[int] = np.argpartition(q_values, -k)[-k:]
 		q_values: np.array = q_values[indices]
+		q_sum = np.sum(q_values)
+		if q_sum > 1e-10:
+			normalized_q_values: np.array = q_values / q_sum
+		else:
+			normalized_q_values: np.array = np.array([1 / k] * k)
 		locations: np.array = np.array(list(legal_actions))[indices]
-		q_values /= sum(q_values)
-		index: int = choice(np.arange(len(q_values)), p=q_values)
+		index: int = choice(np.arange(len(normalized_q_values)), p=normalized_q_values)
 		location: Location = locations[index]
 		directions: Directions = legal_actions[(location[0], location[1])]
 		action: Action = (location, directions)

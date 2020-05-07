@@ -4,8 +4,8 @@ from tensorflow.keras import Input
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Conv2D, Dense
 from tensorflow.keras.layers import Flatten
-from tensorflow.keras.layers import GlobalAveragePooling2D
 from tensorflow.keras.optimizers import Adam
+from tensorflow_core.python.keras.layers import GlobalMaxPooling2D
 
 from agents.trainable_agent import TrainableAgent
 from utils.reshapes import split
@@ -22,16 +22,14 @@ class CNNTrainableAgent(TrainableAgent):
 	def __str__(self) -> str:
 		return f'CNN{super().__str__()})'
 
-	def create_model(self, verbose: bool = False, lr: float = 0.00025) -> Sequential:
+	def create_model(self, verbose: bool = False, lr: float = 0.001) -> Sequential:
 		model: Sequential = Sequential([
 			Input(shape=(2, self.board_size, self.board_size)),
-			Conv2D(16, (3, 3), padding='same', data_format='channels_first', activation='relu',
+			Conv2D(self.board_size ** 2 * 4, (3, 3), padding='same', data_format='channels_first', activation='relu',
 			       kernel_initializer='he_uniform'),
-			Conv2D(64, (3, 3), padding='same', data_format='channels_first', activation='relu',
+			Conv2D(self.board_size ** 2 * 16, (3, 3), padding='same', data_format='channels_first', activation='relu',
 			       kernel_initializer='he_uniform'),
-			Conv2D(256, (3, 3), padding='same', data_format='channels_first', activation='relu',
-			       kernel_initializer='he_uniform'),
-			GlobalAveragePooling2D(data_format='channels_first'),
+			GlobalMaxPooling2D(data_format='channels_first'),
 			Flatten(data_format='channels_first'),
 			Dense(self.board_size ** 2, activation='softmax'),
 		])
@@ -43,4 +41,4 @@ class CNNTrainableAgent(TrainableAgent):
 		return model
 
 	def board_to_nn_input(self, board: np.array) -> np.array:
-		return split(board)
+		return split(board, self.color)
