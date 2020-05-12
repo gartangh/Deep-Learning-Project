@@ -22,14 +22,12 @@ class CNNTrainableAgent(TrainableAgent):
 	def __str__(self) -> str:
 		return f'CNN{super().__str__()})'
 
-	def create_model(self, verbose: bool = False, lr: float = 0.00025) -> Sequential:
+	def create_model(self, verbose: bool = False, lr: float = 0.001) -> Sequential:
 		model: Sequential = Sequential([
 			Input(shape=(2, self.board_size, self.board_size)),
-			Conv2D(self.board_size ** 2, (3, 3), padding='same', data_format='channels_first', activation='relu',
-			       kernel_initializer='he_uniform'),
-			Conv2D(self.board_size ** 2 * 2, (3, 3), padding='same', data_format='channels_first', activation='relu',
-			       kernel_initializer='he_uniform'),
 			Conv2D(self.board_size ** 2 * 4, (3, 3), padding='same', data_format='channels_first', activation='relu',
+			       kernel_initializer='he_uniform'),
+			Conv2D(self.board_size ** 2 * 16, (3, 3), padding='same', data_format='channels_first', activation='relu',
 			       kernel_initializer='he_uniform'),
 			GlobalMaxPooling2D(data_format='channels_first'),
 			Flatten(data_format='channels_first'),

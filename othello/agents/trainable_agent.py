@@ -96,7 +96,7 @@ class TrainableAgent(Agent):
 		print(f'Saved weights to {self.weights_path}')
 
 	@abstractmethod
-	def create_model(self, verbose: bool = False, lr: float = 0.00025) -> Sequential:
+	def create_model(self, verbose: bool = False, lr: float = 0.01) -> Sequential:
 		raise NotImplementedError
 
 	@abstractmethod
