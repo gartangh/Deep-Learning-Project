@@ -35,21 +35,21 @@ if __name__ == '__main__':
 		board_size=board_size,
 	)
 
-	# white agent for self-play
-	self_play: Agent = CNNTrainableAgent(
-		color=Color.WHITE,
-		model_name='CNN_self_play',
-		train_policy=EpsilonGreedyAnnealingTrainablePolicy(
-			inner_policy=TopKNormalizedTrainablePolicy(board_size=board_size, k=3),
-			start_epsilon=1.0,
-			stop_epsilon=0.0,
-		),
-		immediate_reward=NoReward(),
-		final_reward=FixedReward(win=1, draw=0.5, loss=0),
-		board_size=board_size,
-	)
-	# share same networks:
-	self_play.dnn = black.dnn
+	# # white agent for self-play
+	# self_play: Agent = CNNTrainableAgent(
+	# 	color=Color.WHITE,
+	# 	model_name='CNN_self_play',
+	# 	train_policy=EpsilonGreedyAnnealingTrainablePolicy(
+	# 		inner_policy=TopKNormalizedTrainablePolicy(board_size=board_size, k=3),
+	# 		start_epsilon=1.0,
+	# 		stop_epsilon=0.0,
+	# 	),
+	# 	immediate_reward=NoReward(),
+	# 	final_reward=FixedReward(win=1, draw=0.5, loss=0),
+	# 	board_size=board_size,
+	# )
+	# # share same networks:
+	# self_play.dnn = black.dnn
 
 	# train strategy
 	train_configs: List[Config] = [
@@ -77,14 +77,14 @@ if __name__ == '__main__':
 		# 	verbose=False,
 		# 	verbose_live=False,
 		# ),
-		# self play
-		Config(
-			white=self_play,
-			train_white=True,
-			num_episodes=10_000,
-			verbose=False,
-			verbose_live=False,
-		),
+		# # self play
+		# Config(
+		# 	white=self_play,
+		# 	train_white=True,
+		# 	num_episodes=10_000,
+		# 	verbose=False,
+		# 	verbose_live=False,
+		# ),
 	]
 
 	# eval configs
@@ -111,24 +111,24 @@ if __name__ == '__main__':
 
 	# test configs
 	test_configs: List[Config] = [
-		Config(
-			white=UntrainableAgent(color=Color.WHITE, policy=RandomUntrainablePolicy()),
-			num_episodes=1000,
-			verbose=True,
-			verbose_live=False,
-		),
-		Config(
-			white=UntrainableAgent(color=Color.WHITE, policy=WeightsUntrainablePolicy(heur(board_size))),
-			num_episodes=1000,
-			verbose=True,
-			verbose_live=False,
-		),
-		Config(
-			white=UntrainableAgent(color=Color.WHITE, policy=WeightsUntrainablePolicy(bench(board_size))),
-			num_episodes=1000,
-			verbose=True,
-			verbose_live=False,
-		),
+		# Config(
+		# 	white=UntrainableAgent(color=Color.WHITE, policy=RandomUntrainablePolicy()),
+		# 	num_episodes=1000,
+		# 	verbose=True,
+		# 	verbose_live=False,
+		# ),
+		# Config(
+		# 	white=UntrainableAgent(color=Color.WHITE, policy=WeightsUntrainablePolicy(heur(board_size))),
+		# 	num_episodes=1000,
+		# 	verbose=True,
+		# 	verbose_live=False,
+		# ),
+		# Config(
+		# 	white=UntrainableAgent(color=Color.WHITE, policy=WeightsUntrainablePolicy(bench(board_size))),
+		# 	num_episodes=1000,
+		# 	verbose=True,
+		# 	verbose_live=False,
+		# ),
 	]
 
 	# human configs
